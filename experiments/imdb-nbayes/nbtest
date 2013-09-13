@@ -1,0 +1,51 @@
+#!/usr/bin/perl -w
+use strict;
+
+# Read the naive bayes model file
+my $modelfile = shift;
+open(MODEL, $modelfile) or die $!;
+my %logp_class;
+my %logp;
+while(<MODEL>) {
+    my @a = split;
+    if (scalar(@a) == 2) {
+	# This must be a class log-probability
+	$logp_class{$a[0]} = $a[1];
+    } elsif (scalar(@a) == 3) {
+	# This must be a class conditional word log-probability
+	$logp{$a[0]}{$a[1]} = $a[2];
+    } else {
+	die "Line should have 2-3 tokens";
+    }
+}
+close(MODEL);
+
+# Test on filenames from stdin
+while(<>) {
+    chop;
+    open(DOC, $_) or die $!;
+    my %score;
+    for my $class (keys %logp_class) {
+	$score{$class} = $logp_class{$class};
+    }
+    while (<DOC>) {
+	for my $word (split) {
+	    # Ignoring unknown words, not exactly right!
+	    next if not defined $logp{$word};
+	    for my $class (keys %logp_class) {
+		$score{$class} += $logp{$word}{$class};
+	    }
+	}
+    }
+    close(DOC);
+    # Find the highest scoring class
+    my ($best_score, $best_class);
+    for my $class (keys %logp_class) {
+	if (not defined $best_score or $score{$class} > $best_score) {
+	    $best_score = $score{$class};
+	    $best_class = $class;
+	}
+    }
+    # Print the result
+    print "$best_class\n";
+}

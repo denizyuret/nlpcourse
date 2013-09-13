@@ -1,0 +1,30 @@
+#!/usr/bin/perl -w
+use strict;
+
+# We assume two classes (pos, neg) with equal prior probability
+
+# Test on filenames from stdin
+while(<>) {
+    chop;
+    my $file = $_;
+    my $posppl = ppl($file, 'pos.lm.gz');
+    my $negppl = ppl($file, 'neg.lm.gz');
+    my $class = ($posppl <= $negppl ? "pos" : "neg");
+    print "$class\n";
+    print STDERR substr($class, 0, 1);
+}
+print STDERR "\n";
+
+sub ppl {
+    my ($file, $lm) = @_;
+    my $ppl;
+    open(PPL, "ngram -unk -lm $lm -ppl $file |") or die $!;
+    while(<PPL>) {
+	if (/ppl= (\S+)/) {
+	    $ppl = $1;
+	    last;
+	}
+    }       
+    close(PPL);
+    return $ppl
+}

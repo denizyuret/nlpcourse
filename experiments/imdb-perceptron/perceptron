@@ -1,0 +1,88 @@
+#!/usr/bin/perl -w
+use strict;
+use List::Util 'shuffle';
+
+my $T = shift;			# training iterations
+$T = 100 if not defined $T;
+my %pclass;			# class parameters
+my %pword;			# word-class parameters
+
+warn("Reading data\n");
+my @class;
+my @docs;
+while (<>) {
+    chop;
+    open(DOC, $_) or die $!;
+    my ($class) = m:/([^/]+)/[^/]+$:;
+    push @class, $class;
+    $pclass{$class} = 0;
+    my %wcount;
+    while (<DOC>) {
+	for my $word (split) {
+	    $wcount{$word}++;
+	}
+    }
+    push @docs, \%wcount;
+    close(DOC);
+}
+
+warn sprintf("Training with %d documents in %d classes\n", 
+	     scalar(@docs), scalar(keys(%pclass)));
+for (my $t = 0; $t < $T; $t++) {
+    my $mistakes = 0;
+    # Use shuffled array for training to avoid getting stuck:
+    my @shuffled = shuffle(0 .. $#docs);
+    for my $s (@shuffled) {
+	my $guess = classify($docs[$s]);
+	next if $guess eq $class[$s];
+	$mistakes++;
+	increment($class[$s], $docs[$s], 1);
+	increment($guess, $docs[$s], -1);
+    }
+    warn "Iteration $t made $mistakes mistakes\n";
+    last if $mistakes == 0;
+}
+
+# Output final parameters
+for my $class (keys %pclass) {
+    printf("%s\t%g\n", $class, $pclass{$class});
+}
+
+for my $word (keys %pword) {
+    for my $class (keys %{$pword{$word}}) {
+	printf("%s\t%s\t%g\n", $word, $class, $pword{$word}{$class});
+    }
+}
+
+
+sub increment {
+    my ($class, $wcount, $amount) = @_;
+    $pclass{$class} += $amount;
+    for my $word (keys %{$wcount}) {
+	$pword{$word}{$class} += $wcount->{$word} * $amount;
+    }
+}
+
+sub classify {
+    my ($wcount) = @_;
+    my %score;
+    for my $class (keys %pclass) {
+	$score{$class} = $pclass{$class};
+    }
+    for my $word (keys %{$wcount}) {
+	next if not defined $pword{$word};
+	for my $class (keys %pclass) {
+	    next if not defined $pword{$word}{$class};
+	    $score{$class} += $pword{$word}{$class} * $wcount->{$word};
+	}
+    }
+    # Find the highest scoring class
+    my ($best_score, $best_class);
+    for my $class (keys %pclass) {
+	if (not defined $best_score or $score{$class} > $best_score) {
+	    $best_score = $score{$class};
+	    $best_class = $class;
+	}
+    }
+    return $best_class;
+}

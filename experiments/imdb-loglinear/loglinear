@@ -1,0 +1,158 @@
+#!/usr/bin/perl -w
+use strict;
+use Algorithm::LBFGS;
+use Data::Dumper;
+
+# Regularization constant
+my $lambda = 1;
+
+# We will map features to integers 1..F
+# feat[1] will be the special token <unk>
+# We are reserving zero for index calculations.
+my @feat = (undef, '<unk>');
+my %feat = ('<unk>' => 1);
+
+# Read the features from the feat file given as the first argument.
+# This is necessary to output probabilities for feat entries 
+# that do not appear in training but may appear in test data.
+my $featfile = shift;
+warn "Reading $featfile\n";
+open(FEAT, $featfile) or die $!;
+while(<FEAT>) {
+    chop;
+    next if defined $feat{$_};
+    push @feat, $_;
+    $feat{$_} = $#feat;
+}
+close(FEAT);
+warn "Read $#feat features (including <unk>)";
+
+# We will map classes to integers 0..(C-1)
+my @class = ();
+my %class = ();
+
+# Read the data from stdin
+# Each line is a class followed by features
+my @data;
+warn "Reading data from stdin";
+while(<>) {
+    my ($class, @feats) = split;
+    if (not defined $class{$class}) {
+	push @class, $class;
+	$class{$class} = $#class;
+    }
+    my @x = ($class{$class});
+    for my $f (@feats) {
+	my $fi = $feat{$f};
+	die if not defined $fi;
+	push @x, $fi;
+    }
+    push @data, \@x;
+}
+
+my $ndata = scalar(@data);
+my $nclass = scalar(@class);
+my $nfeats = scalar(@feat) - 1;
+my $nweights = $nclass * ($nfeats + 1);
+my $w0 = [(0) x $nweights];	# initial weights
+
+warn "Read $ndata instances, $nclass classes, creating $nweights weights.\n";
+
+# The indices of the weight array W correspond to:
+# 0..(C-1): marginal weights for classes only
+# C..(2C-1): weights for the first feature with classes 0..(C-1)
+# 2C..(3C-1): weights for the second feature with classes 0..(C-1)
+
+my $eval_cb = sub {
+    # warn "Entering eval_cb\n";
+    # The optimizer gives us its next guess (w)
+    my $w = shift;
+    my $nw = scalar(@$w);
+    # warn "Received $nw dimensional weight vector\n";
+    # Calculate negative conditional log likelihood (l) and its gradient (g)
+    my $l = 0;
+    my $g = [(0) x $nweights];
+    # Each data point (x) is a class followed by feats each represented as ints
+    my $nd = scalar(@data);
+    # warn "Iterating through $nd data instances\n";
+    for my $x (@data) {
+	my $nx = scalar(@$x);
+	# Calculate dot product (e) of w and feats for each class
+	my @e;
+	# First marginal weights for classes only:
+	for (my $c = 0; $c < $nclass; $c++) {
+	    $e[$c] = $w->[$c];
+	}
+	# Then add weights for class-feature pairs:
+	for (my $i = 1; $i < $nx; $i++) {
+	    # Take the next feature (f) observed in x
+	    my $f = $x->[$i];
+	    # Add its weights for each class
+	    for (my $c = 0; $c < $nclass; $c++) {
+		$e[$c] += $w->[$f * $nclass + $c];
+	    }
+	}
+	# Now we can calculate the normalization constant for this x:
+	my $z;
+	for (my $c = 0; $c < $nclass; $c++) {
+	    $z += exp($e[$c]);
+	}
+	# Add the log likelihood for this x:
+	my $c = $x->[0];
+	$l -= $e[$c];
+	$l += log($z);
+       
+	# First term in gradient is the empirical sum:
+	$g->[$c] -= 1.0;
+	for (my $i = 1; $i < $nx; $i++) {
+	    my $f = $x->[$i];
+	    $g->[$f * $nclass + $c] -= 1.0;
+	}
+
+	# Second term in gradient is minus the expected sum:
+	for (my $c = 0; $c < $nclass; $c++) {
+	    my $p = exp($e[$c]) / $z;
+	    $g->[$c] += $p;
+	    for (my $i = 1; $i < $nx; $i++) {
+		my $f = $x->[$i];
+		$g->[$f * $nclass + $c] += $p;
+	    }
+	}
+    }
+    # warn "Data neg-log-likelihood is $l\n";
+    # Calculate the regularization term if lambda != 0
+    if ($lambda != 0) {
+	my $w2;
+	for (my $i = 0; $i < $nweights; $i++) {
+	    $w2 += $w->[$i] * $w->[$i];
+	    $g->[$i] += $lambda * $w->[$i];
+	}
+	$l += ($lambda / 2) * $w2;
+    }
+    # warn "Neg-log-likelihood after regularization is $l\n";
+
+    return ($l, $g);
+};
+
+my $progress_cb = sub {
+    my ($x, $g, $fx, $xnorm, $gnorm, $step, $k, $ls, $user_data) = @_;
+    warn sprintf("f=%g xnorm=%g gnorm=%g step=%g k=%g ls=%g\n",
+	$fx, $xnorm, $gnorm, $step, $k, $ls);
+    return 0;
+};
+
+# Create and use the L-BFGS optimizer
+my $o = Algorithm::LBFGS->new;
+warn "Calling fmin\n";
+my $w = $o->fmin($eval_cb, $w0, $progress_cb);
+
+# Output the model
+warn "Writing model\n";
+for (my $c = 0; $c < $nclass; $c++) {
+    printf("%s\t%g\n", $class[$c], $w->[$c]);
+}
+for (my $f = 1; $f <= $nfeats; $f++) {
+    for (my $c = 0; $c < $nclass; $c++) {
+	printf("%s\t%s\t%g\n", $feat[$f], $class[$c], $w->[$f * $nclass + $c]);
+    }
+}

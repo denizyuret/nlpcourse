@@ -1,0 +1,20 @@
+#!/usr/bin/perl -w
+use strict;
+
+# Output the most frequent NVOCAB words in stdin
+# NVOCAB is read from the first argument
+my $NVOCAB = shift;
+
+my %cnt;
+while(<>) {
+    my @words = split;
+    for my $word (@words) {
+	$cnt{$word}++;
+    }
+}
+
+my @sorted = sort { $cnt{$b} <=> $cnt{$a} } keys(%cnt);
+
+for (my $i = 0; $i < $NVOCAB; $i++) {
+    print "$sorted[$i]\n";
+}

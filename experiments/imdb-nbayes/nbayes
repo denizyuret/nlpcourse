@@ -1,0 +1,46 @@
+#!/usr/bin/perl -w
+use strict;
+
+# Probability estimate for something that occurs ni times out of N
+# observations: (smooth + n) / (smooth * nvocab + N)
+my $smooth = shift;
+$smooth = 1 if not defined $smooth;
+
+# Count documents, classes and words in training data, which should
+# come in one filename per line from stdin.
+my $total_documents;
+my %documents_in_class;
+my %words_in_class;
+my %word_class_count;
+
+while (<>) {
+    chop;
+    open(DOC, $_) or die $!;
+    my ($class) = m:/([^/]+)/[^/]+$:;
+    $total_documents++;
+    $documents_in_class{$class}++;
+    while (<DOC>) {
+	for my $word (split) {
+	    $words_in_class{$class}++;
+	    $word_class_count{$word}{$class}++;
+	}
+    }
+    close(DOC);
+}
+
+# First output the class log-probabilities (maximum likelihood estimate, no smoothing)
+for my $class (keys %documents_in_class) {
+    printf("%s\t%g\n", $class, log($documents_in_class{$class} / $total_documents));
+}
+
+# Then output the conditional word log-probabilities for all possible 
+# word-class pairs (with additive smoothing)
+my $nvocab = scalar(keys(%word_class_count));
+for my $word (keys %word_class_count) {
+    for my $class (keys %documents_in_class) {
+	my $denom = $words_in_class{$class};
+	my $nom = $word_class_count{$word}{$class};
+	$nom = 0 if not defined $nom;
+	printf("%s\t%s\t%g\n", $word, $class, log(($smooth + $nom) / ($smooth * $nvocab + $denom)));
+    }
+}

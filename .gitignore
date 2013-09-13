@@ -1,3 +1,14 @@
+# Working directories
+bin/*
+data/*
+lib/*
+src/*
+latex/beamer-test
+
+!data/Makefile
+!src/Makefile
+
+# LaTeX
 *.acn
 *.acr
 *.alg

@@ -1,0 +1,35 @@
+#!/usr/bin/perl -w
+use strict;
+
+# Read answers to evaluate
+my $answerfile = shift;
+my @guess;
+open(ANS, $answerfile) or die $!;
+while(<ANS>) {
+    chop;
+    push @guess, $_;
+}
+close(ANS);
+
+my %confusion_matrix;
+while(<>) {
+    my ($correct_class, @feats) = split;
+    $confusion_matrix{$correct_class}{$guess[$. - 1]}++;
+}
+
+# Print out the confusion matrix and overall accuracy
+
+my $ntotal;
+my $ncorrect;
+print "correct\tguess\tcount\n";
+print "-------\t-----\t-----\n";
+for my $correct (keys %confusion_matrix) {
+    for my $guess (keys %{$confusion_matrix{$correct}}) {
+	my $n = $confusion_matrix{$correct}{$guess};
+	$ntotal += $n;
+	$ncorrect += $n if $guess eq $correct;
+	print "$correct\t$guess\t$n\n";
+    }
+}
+printf("%d correct answers out of %d instances (accuracy=%g)\n", 
+       $ncorrect, $ntotal, $ncorrect / $ntotal);

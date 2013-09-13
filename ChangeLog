@@ -1,0 +1,94 @@
+2013-08-23  Deniz Yuret  <dyuret@ku.edu.tr>
+
+	* loss: Comparing loss for nbayes, logistic, perceptron, svm, 0-1
+	loss.  Probably assume two class?  What is the x and y axes for
+	the loss graphs?  Start discriminative lecture by asking what does
+	nbayes and loglinear optimize?
+
+	* liblinear: includes both logistic regression and svm.  The paper
+	has a nice description of both.  Multiclass says one-vs-the-rest.
+	Standard references (like Daume's http://ciml.info/) present
+	perceptron etc. for two classes.  Should look into generalizing
+	from two class to multiclass for perceptron, logistic, svm etc.
+	They also have standard datasets for many problems at (rcv1,
+	news20): http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/
+
+	Got 83.15 with svm and 83.65 with logistic 5-fold xval after
+	optimizing c.  (c must have a different meaning than our
+	loglinear).
+
+	Ignoring counts (representing each word as 0/1) gives 86.25 and 86
+	with logistic and svm!  Should try the same with perceptron and
+	nbayes...
+
+	* imdb-srilm: classifying with a trigram kneser ney language model
+	gave 0.8375 and 0.8025 for fold 0 and 1.  Is this significant?
+	Make significance testing part of the first assignment.
+
+	* todo: write averaged perceptron (done, but did not make much
+	difference), reimplement loglinear in C (no need?), implement SVM
+	with optimizer (no need?) and/or use libsvm, liblinear etc. (done)
+	implement srilm classifier (done).
+
+	Two questions for the discriminative lecture: two-class vs
+	multi-class expressions; comparison of loss and regularization for
+	perceptron, loglinear, svm.
+
+	http://en.wikipedia.org/wiki/Logistic_regression#As_a_.22log-linear.22_model
+	Explains two-class vs multi-class.
+	Shows equivalence between loglinear and logistic, also between
+	logistic as single layer perceptron (with squashed s activation)!
+
+	From: http://inst.eecs.berkeley.edu/~cs188/sp12/slides/cs188%20lecture%2021%20--%20perceptron%206PP.pdf
+	Binary = multiclass where the negative class has weight zero
+	Multiclass: has different weight vectors for each class (including
+	bias) ... alternative representation.
+
+	A quora page comparing svm implementations:
+	http://www.quora.com/Support-Vector-Machines/What-SVM-package-is-best-for-large-scale-linear-classification
+
+	* ciml: Check out Daume's book for perceptron notes; shuffling
+	helps, averaging can be done cheaply:
+	http://ciml.info/dl/v0_8/ciml-v0_8-ch03.pdf
+	Add Domingos1997 and McCallum1998 to the nbayes reading list.
+
+	* experiments/imdb-perceptron/perceptron: How about this as the
+	first project: start with SLM, teach SRILM, after the generative
+	document classification lecture give homework comparing
+	unigram-nbayes with srilm-nbayes.  SVM and logistic give better
+	results using the 0/1 feature representation!  Change ngram order,
+	smoothing, vocab size for srilm?  Here is some data on ngram
+	order (need stderr):
+
+	ngram	accuracy
+	1	.8025
+	2	.8350
+	3	.8375
+	4	.8450
+	5	.8450
+
+	In the project they must have stderr, they must try all obvious
+	variations (e.g. regularization constant, vocab size, ngram order
+	etc.)  Maybe feature engineering and feature selection.
+
+2013-08-16  Deniz Yuret  <dyuret@ku.edu.tr>
+
+	* topics: do we cover statistical significance?
+	definitely ignore summarization and generation?
+	gotta research semantic parsing and related learning (ccg,
+	language and vision, etc.)
+	morphology: disamb is a tagging problem, how about analysis?
+	morphochallenge? xavier's (or stolcke's) fst induction?
+
+2013-08-15  Deniz Yuret  <dyuret@ku.edu.tr>
+
+	* url: need url field in acl.bst.  Check out
+	http://nodonn.tipido.net/bibstyle.php
+	Or use \usepackage{url} or \usepackage{hyperref}, then insert a
+	\url{http://...} entry inside a note or howpublished (for misc).
+
+	* annote: need annotation field in acl.bst.  Check out
+	annotation.bst, plain-annote.bst, chicagoa, chicago-annote,
+	apacann etc.  Done.
+
+

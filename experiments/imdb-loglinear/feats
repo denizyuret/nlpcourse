@@ -1,0 +1,35 @@
+#!/usr/bin/perl -w
+use strict;
+
+# Read the vocabulary from the vocab file given as an argument
+my $vocabfile = shift;
+my %vocab;
+open(VOCAB, $vocabfile) or die $!;
+while(<VOCAB>) {
+    chop;
+    $vocab{$_}++;
+}
+close(VOCAB);
+
+# Read data files from stdin
+while(<>) {
+
+    # Print class info based on the path
+    if (/pos/) { print "pos"; }
+    elsif (/neg/) { print "neg"; }
+    else { die "Path does not include pos or neg!"; }
+
+    open(TXT, $_) or die $!;
+    while(<TXT>) {
+	my @words = split;
+	for my $word (@words) {
+	    if (defined $vocab{$word}) {
+		print " $word";
+	    } else {
+		print " <unk>";
+	    }
+	}
+    }
+    close(TXT);
+    print "\n";
+}

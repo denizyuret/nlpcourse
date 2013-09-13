@@ -1,0 +1,32 @@
+#!/usr/bin/perl -w
+use strict;
+
+# Read one filename per line
+# Write libsvm format data file
+my %index;
+while (<>) {
+    chop;
+    open(DOC, $_) or die $!;
+    print (/pos/ ? '+1' : '-1');
+    my %wcnt;
+    my $wcnt;
+    while (<DOC>) {
+	for my $word (split) {
+	    $wcnt++;
+	    if (not defined $index{$word}) {
+		$index{$word} = 1 + scalar(keys(%index));
+	    }
+	    $wcnt{$index{$word}}++;
+	}
+    }
+    close(DOC);
+    for my $i (sort {$a <=> $b} keys(%wcnt)) {
+	# Normalized:
+	# printf(" %d:%g", $i, $wcnt{$i} / $wcnt);
+	# Unnormalized:
+	# printf(" %d:%g", $i, $wcnt{$i});
+	# 0/1:
+	print " $i:1";
+    }
+    print "\n";
+}

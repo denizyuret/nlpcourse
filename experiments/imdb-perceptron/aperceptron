@@ -1,0 +1,107 @@
+#!/usr/bin/perl -w
+# Averaged perceptron
+use strict;
+use List::Util 'shuffle';
+
+my $ITER = shift;		# training iterations
+$ITER = 100 if not defined $ITER;
+my %pclass;			# class parameters
+my %pword;			# word-class parameters
+my %uclass;			# averaged parameters
+my %uword;			# averaged parameters
+
+warn("Reading data\n");
+my @class;
+my @docs;
+while (<>) {
+    chop;
+    open(DOC, $_) or die $!;
+    my ($class) = m:/([^/]+)/[^/]+$:;
+    push @class, $class;
+    $pclass{$class} = 0;
+    my %wcount;
+    while (<DOC>) {
+	for my $word (split) {
+	    $wcount{$word}++;
+	}
+    }
+    push @docs, \%wcount;
+    close(DOC);
+}
+
+# To compute the averaged parameters efficiently use the following trick:
+# Final parameters of perceptron after seeing T examples and making m mistakes:
+# w = f1 + f2 + ... + fm (represented by $pclass, $pword)
+# Say term fi was added at example ti.  Then the average would be:
+# w_avg = (1/T) ((T-t1) f1 + (T-t2) f2 + ... + (T-tm) fm)
+# A convenient expression to keep track of easily:
+# u = T(w - w_avg) = t1 f1 + t2 f2 + ... + tm fm (rep by $uclass, $uword)
+# At the end of training we can compute w_avg as:
+# w_avg = w - u/T
+
+warn sprintf("Training with %d documents in %d classes\n", 
+	     scalar(@docs), scalar(keys(%pclass)));
+my $ti = 0;
+for (my $iter = 0; $iter < $ITER; $iter++) {
+    my $mistakes = 0;
+    # Use shuffled array for training to avoid getting stuck:
+    my @shuffled = shuffle(0 .. $#docs);
+    for my $s (@shuffled) {
+	$ti++;
+	my $guess = classify($docs[$s]);
+	next if $guess eq $class[$s];
+	$mistakes++;
+	increment($class[$s], $docs[$s], 1);
+	increment($guess, $docs[$s], -1);
+    }
+    warn "Iteration $iter made $mistakes mistakes\n";
+    last if $mistakes == 0;
+}
+
+# Output final parameters
+for my $class (keys %pclass) {
+    my $p_avg = $pclass{$class} - $uclass{$class} / $ti;
+    printf("%s\t%g\n", $class, $p_avg);
+}
+
+for my $word (keys %pword) {
+    for my $class (keys %{$pword{$word}}) {
+	my $p_avg = $pword{$word}{$class} - $uword{$word}{$class} / $ti;
+	printf("%s\t%s\t%g\n", $word, $class, $p_avg);
+    }
+}
+
+
+sub increment {
+    my ($class, $wcount, $amount) = @_;
+    $pclass{$class} += $amount;
+    $uclass{$class} += $ti * $amount;
+    for my $word (keys %{$wcount}) {
+	$pword{$word}{$class} += $wcount->{$word} * $amount;
+	$uword{$word}{$class} += $ti * $wcount->{$word} * $amount;
+    }
+}
+
+sub classify {
+    my ($wcount) = @_;
+    my %score;
+    for my $class (keys %pclass) {
+	$score{$class} = $pclass{$class};
+    }
+    for my $word (keys %{$wcount}) {
+	next if not defined $pword{$word};
+	for my $class (keys %pclass) {
+	    next if not defined $pword{$word}{$class};
+	    $score{$class} += $pword{$word}{$class} * $wcount->{$word};
+	}
+    }
+    # Find the highest scoring class
+    my ($best_score, $best_class);
+    for my $class (keys %pclass) {
+	if (not defined $best_score or $score{$class} > $best_score) {
+	    $best_score = $score{$class};
+	    $best_class = $class;
+	}
+    }
+    return $best_class;
+}

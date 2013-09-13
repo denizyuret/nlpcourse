@@ -1,0 +1,46 @@
+#!/usr/bin/perl -w
+use strict;
+
+# Read the loglinear model file
+my %pclass;
+my %p;
+my $modelfile = shift;
+open(MODEL, $modelfile) or die $!;
+while(<MODEL>) {
+    my @a = split;
+    if (scalar(@a) == 2) {
+	# This must be a class coefficient
+	$pclass{$a[0]} = $a[1];
+    } elsif (scalar(@a) == 3) {
+	# This must be a class conditional feature coefficient
+	$p{$a[0]}{$a[1]} = $a[2];
+    } else {
+	die "Line should have 2-3 tokens";
+    }
+}
+close(MODEL);
+
+# Test on data from stdin (no class, just features on each line)
+while(<>) {
+    my @feats = split;
+    # Calculate with log probabilities to avoid underflow
+    my %logp;
+    for my $class (keys %pclass) {
+	$logp{$class} = $pclass{$class};
+    }
+    for my $feat (@feats) {
+	for my $class (keys %pclass) {
+	    $logp{$class} += $p{$feat}{$class};
+	}
+    }
+    # Find the highest scoring class
+    my ($best_logp, $best_class);
+    for my $class (keys %pclass) {
+	if (not defined $best_logp or $logp{$class} > $best_logp) {
+	    $best_logp = $logp{$class};
+	    $best_class = $class;
+	}
+    }
+    # Print the result
+    print "$best_class\n";
+}

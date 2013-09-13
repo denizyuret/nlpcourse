@@ -1,0 +1,14 @@
+export ROOT=`pwd`
+
+export SRILM=${ROOT}/src/srilm-1.7.0-Lite
+export PATH=${PATH}:${SRILM}/bin/i686-m64:${SRILM}/bin
+export MANPATH=${MANPATH}:${SRILM}/man
+
+export MALLET_HOME=${ROOT}/src/mallet-2.0.7
+export PATH=${PATH}:${MALLET_HOME}/bin
+
+export LIBSVM=${ROOT}/src/libsvm-3.17
+export PATH=${PATH}:${LIBSVM}
+
+export LIBLINEAR=${ROOT}/src/liblinear-1.93
+export PATH=${PATH}:${LIBLINEAR}
