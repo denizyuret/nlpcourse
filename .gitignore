@@ -4,9 +4,13 @@ data/*
 lib/*
 src/*
 latex/beamer-test
+latex/*.pdf
 
 !data/Makefile
 !src/Makefile
+
+# Mac
+.DS_Store
 
 # LaTeX
 *.acn

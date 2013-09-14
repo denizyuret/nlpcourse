@@ -1,3 +1,131 @@
+\documentclass[ignorenonframetext]{beamer}
+
+\title{Natural Language Processing}
+\subtitle{Learning to map strings to meaning}
+\author{Deniz Yuret}
+\date{Comp 542, Fall 2013}
+
+\hypersetup{colorlinks,urlcolor=red}
+
+\begin{document}
+
+\begin{frame}
+\maketitle
+\end{frame}
+
+\begin{frame}\frametitle{SHRDLU}
+
+\begin{itemize}
+\item Domain: blocks in a virtual world
+\item Input: user commands and questions
+\item Output: appropriate answers and actions
+\item Learning: none, manually built
+\end{itemize}
+
+See \href{http://hci.stanford.edu/~winograd/shrdlu}{Winograd, 1971}
+and click on the following image for a demo.
+
+\begin{center}
+\href{http://youtu.be/QAJz4YKUwqw}{
+\includegraphics[]{winograd-shrdlu.png}}
+\end{center}
+
+\end{frame}
+
+\begin{frame}\frametitle{How does SHRDLU work?}
+
+\end{frame}
+
+\begin{frame}\frametitle{START}
+
+\begin{itemize}
+\item Domain: simplified text, structured websites
+\item Input: user questions
+\item Output: appropriate answers
+\item Learning: none, manually built
+\end{itemize}
+
+See \href{ftp://publications.ai.mit.edu/ai-publications/pdf/AIM-1096.pdf}{Katz, 1988}
+and click on the following image for a demo.
+
+\begin{center}
+\href{http://start.csail.mit.edu}{
+\includegraphics[width=.7\textwidth]{katz-start.png}}
+\end{center}
+
+\end{frame}
+
+\begin{frame}\frametitle{How does START work?}
+
+\end{frame}
+
+\begin{frame}\frametitle{GEOQUERY}
+
+\begin{itemize}
+\item Domain: US Geography Database
+\item Input: user questions
+\item Output: appropriate answers
+\item Learning: various
+\end{itemize}
+
+See \href{http://aaaipress.org/Papers/AAAI/1996/AAAI96-156.pdf}{Zelle
+  and Mooney, 1996}
+and click on the following image for more information.
+
+\begin{center}
+\href{http://www.cs.utexas.edu/users/ml/geo.html}{
+\includegraphics[width=.7\textwidth]{us-states.png}}
+\end{center}
+
+\end{frame}
+
+\begin{frame}\frametitle{GEOQUERY: database}
+A small database with about 800 facts on US geography:
+\begin{itemize}
+\item States - their capitals, populations, areas, population densities,
+major cities, rivers and the bordering states
+\item Cities - their populations and the states they are in
+\item Rivers - their lengths and the states through which they flow
+\item Mountains - their heights and the states they are in
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}\frametitle{GEOQUERY: example questions}
+\begin{itemize}
+\item What is the capital of Texas?
+\item What is the length of Colorado?
+\item What is the population of Colorado?
+\item What is the area of the largest state?
+\item What are the major cities in Louisiana?
+\item How many people live in South Dakota?
+\item How high is the highest point in Alaska?
+\item Which states have a city named Springfield?
+\item What is the capital of the most populous state?
+\item How many rivers flow through Mississippi?
+\item How many states does the Mississippi run through?
+\item How high is the highest point in the smallest state?
+\item Which rivers flow through the states that border California?
+\end{itemize}
+\end{frame}
+
+People:
+
+RuleBased:
+Winograd
+Katz
+
+SemParse:
+Barzilay
+Mooney
+Zettlemoyer
+Roth
+Jordan
+
+Lexical:
+Siskind
+Roy
+
 Introduction
 
 Natural language processing is a large field in the intersection of
@@ -238,3 +366,5 @@ techniques into more complicated domains such as structured event extraction.
 Hard EM is mentioned in the context
 of several examples, though a more detailed description of this potentially important
 technique (cf. Spitkovsky et al., 2010) would bridge the material of Chapters 2 and 4.
+
+\end{document}

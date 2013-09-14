@@ -1,4 +1,4 @@
-all: liblbfgs-1.10  liblinear-1.93  libsvm-3.17  mallet-2.0.7  srilm-1.7.0-Lite
+all:
 
 liblbfgs-1.10: ../download/liblbfgs-1.10.tar.gz
 	tar xvzf $<
@@ -19,3 +19,9 @@ mallet-2.0.7: ../download/mallet-2.0.7.tar.gz
 srilm-1.7.0-Lite: ../download/srilm-1.7.0-Lite.tgz
 	mkdir -p $@
 	cd $@; tar xvzf $<; make World
+
+wasp-1.0: ../download/wasp-1.0.tar.gz
+	tar xvzf $<
+
+wasp-2.0alpha: ../download/wasp-2.0alpha.tar.gz
+	tar xvzf $<
