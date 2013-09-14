@@ -1,9 +1,9 @@
 \documentclass[ignorenonframetext]{beamer}
 
-\title{Natural Language Processing}
-\subtitle{Learning to map strings to meaning}
+\title{Learning to map strings to meaning}
+\subtitle{Comp 542 Natural Language Processing}
 \author{Deniz Yuret}
-\date{Comp 542, Fall 2013}
+%\date{Comp 542, Fall 2013}
 
 \hypersetup{colorlinks,urlcolor=red}
 
@@ -27,13 +27,70 @@ and click on the following image for a demo.
 
 \begin{center}
 \href{http://youtu.be/QAJz4YKUwqw}{
-\includegraphics[]{winograd-shrdlu.png}}
+\includegraphics[]{images/winograd-shrdlu.png}}
 \end{center}
 
 \end{frame}
 
-\begin{frame}\frametitle{How does SHRDLU work?}
+\begin{frame}\frametitle{SHRDLU: example interaction}
+\begin{itemize}
+\item pick up a big red block. 
+\\ {\sl ok. (does it) }
+\item grasp the pyramid. 
+\\ {\sl i don't understand which pyramid you mean. }
+\item find a block which is taller than the one you are holding and put it into the box. 
+\\ {\sl by ``it'', i assume you mean the block which is taller than the one i am holding.  ok. (does it) }
+\item what does the box contain? 
+\\ {\sl the blue pyramid and the blue block. }
+\item what is the pyramid supported by? 
+\\ {\sl the box. }
+\item how many blocks are not in the box? 
+\\ {\sl four of them. }
+\item is at least one of them narrower than the one which i told you to pick up? 
+\\ {\sl yes, the red cube. }
+%% \item is it supported? 
+%% \\ {\sl yes, by the table. }
+%% \item can the table pick up blocks? 
+%% \\ {\sl no. }
+%% \item can a pyramid be supported by a block? 
+%% \\ {\sl yes. }
+%% \item can a pyramid support a pyramid? 
+%% \\ {\sl i don't know. }
+%% \item stack up two pyramids. 
+%% \\ {\sl i can't. }
+\end{itemize}
+\end{frame}
 
+\begin{frame}\frametitle{SHRDLU maps sentences to procedures}
+A command like
+\begin{quote}
+Put a red pyramid on top of the blue block
+\end{quote}
+gets mapped to a procedure that uses three basic actions
+\begin{itemize}
+\item MOVETO(a location)
+\item GRASP(a block)
+\item UNGRASP(a block)
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{SHRDLU maps sentences to procedures}
+\begin{quote}
+Put a red pyramid on top of the blue block
+\end{quote}
+
+The ``put'' command corresponds to an UNGRASP action if the following satisfied:
+\begin{itemize}
+\item the blue block has nothing on top
+\item the robot hand is holding the red pyramid
+\item it is on top of the blue block
+\end{itemize}
+If not SHRDLU searches for possible actions to satisfy them.
+\vspace*{1em}
+
+\color{red} 
+Note that the resulting procedure depends on both the sentence
+and the current state of the world.
 \end{frame}
 
 \begin{frame}\frametitle{START}
@@ -50,13 +107,74 @@ and click on the following image for a demo.
 
 \begin{center}
 \href{http://start.csail.mit.edu}{
-\includegraphics[width=.7\textwidth]{katz-start.png}}
+\includegraphics[width=.7\textwidth]{images/katz-start.png}}
 \end{center}
 
 \end{frame}
 
-\begin{frame}\frametitle{How does START work?}
+\begin{frame}\frametitle{START: example questions}
+{\bf Geography}\begin{itemize}
+\item What South-American country has the largest population?
+\item What's the largest city in Florida?
+\end{itemize}
 
+{\bf Science and Reference}\begin{itemize}
+\item What is Jupiter's atmosphere made of?
+\item Who first discovered radiocarbon dating?
+\end{itemize}
+
+{\bf Arts and Entertainment}\begin{itemize}
+\item Who directed Gone with the Wind?
+\item Show some paintings by Claude Monet.
+\end{itemize}
+
+{\bf History and Culture}\begin{itemize}
+\item What countries speak Spanish?
+\item Who was president in 1881?
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{START maps sentences to T-expressions}
+A T-expression (ternary expression) is a 
+\begin{quote}
+$\langle${\bf subject relation object}$\rangle$ triple.
+\end{quote}
+A complex sentence such as:
+\begin{quote}
+If the orator wants to persuade people, he must speak the things
+people wish to hear.
+\end{quote}
+is broken down into the following units (kernel sentences) and stored as T-expressions:
+\begin{itemize}
+\item[(S1)] $\langle${\bf orator-1 want S2}$\rangle$
+\item[(S2)] $\langle${\bf orator-1 persuade people-2}$\rangle$
+\item[(S3)] $\langle${\bf he-1 speak things-3}$\rangle$
+\item[(S4)] $\langle${\bf people-2 wish S5}$\rangle$
+\item[(S5)] $\langle${\bf people-2 hear things-3}$\rangle$
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{START maps sentences to T-expressions}
+\begin{itemize}
+\item T-expressions are generated and indexed upon reading text.
+\item T-expressions are matched when the user asks a question.
+\item S-rules (S stands for both syntax and semantics) handle paraphrases:
+\begin{quote}
+Miriam presented Gabriela with a gift.\\
+Miriam presented a gift to Gabriela.
+\end{quote}
+\item OmniBase annotates multimedia and structured websites (IMDB,
+  World Factbook, Wikipedia) with simple English to support matching
+  and retrieval from the web.  See
+  (\href{http://www.denizyuret.com/pub/nldb02/Katz-etal-NLDB02.pdf}{Katz,
+    Felshin, Yuret et al. 2002}) for more information.
+\vspace*{1em}
+
+{\small\sl
+(get "imdb-movie" "Gone with the Wind (1939)" "DIRECTOR") 
+\\ =$>$ ("George Cukor" "Victor Fleming" "Sam Wood")
+}
+\end{itemize}
 \end{frame}
 
 \begin{frame}\frametitle{GEOQUERY}
@@ -65,7 +183,7 @@ and click on the following image for a demo.
 \item Domain: US Geography Database
 \item Input: user questions
 \item Output: appropriate answers
-\item Learning: various
+\item Learning: from question, logical form pairs
 \end{itemize}
 
 See \href{http://aaaipress.org/Papers/AAAI/1996/AAAI96-156.pdf}{Zelle
@@ -74,7 +192,7 @@ and click on the following image for more information.
 
 \begin{center}
 \href{http://www.cs.utexas.edu/users/ml/geo.html}{
-\includegraphics[width=.7\textwidth]{us-states.png}}
+\includegraphics[width=.7\textwidth]{images/us-states.png}}
 \end{center}
 
 \end{frame}
@@ -88,7 +206,12 @@ major cities, rivers and the bordering states
 \item Rivers - their lengths and the states through which they flow
 \item Mountains - their heights and the states they are in
 \end{itemize}
-
+\vspace*{1cm}
+Note: Other databases commonly used in semantic parsing literature in addition to
+\href{http://www.cs.utexas.edu/users/ml/nldata/geo.html}{\sc geoquery} include
+\href{http://www.cs.utexas.edu/users/ml/nldata/restquery.html}{\sc rest} (restaurant information in N. California),
+\href{http://www.cs.utexas.edu/users/ml/nldata/jobquery.html}{\sc jobs} (job announcements from austin.jobs),
+\href{http://www.cs.utexas.edu/users/ml/nldata/clang.html}{\sc clang} (the RoboCup coach language).
 \end{frame}
 
 \begin{frame}\frametitle{GEOQUERY: example questions}
@@ -107,6 +230,133 @@ major cities, rivers and the bordering states
 \item How high is the highest point in the smallest state?
 \item Which rivers flow through the states that border California?
 \end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{GEOQUERY: learning to map questions to logical forms}
+Example: What states border Montana?
+\begin{itemize}
+%% \item syntax: \\
+%% {\tt (SBARQ (WHNP (WP What) (NNS states)) \\ \hspace{8ex} (SQ (VP (VBP border) (NP (NNP Montana)))))}
+\item Prolog:
+(\href{http://aaaipress.org/Papers/AAAI/1996/AAAI96-156.pdf}{Zelle and Mooney 1996}; 
+ \href{}{Tang and Mooney 2001})
+\\ {\tt \small answer(A,(state(A),next-to(A,B),const(B,stateid(montana))))}
+\item SQL:
+(\href{http://homes.cs.washington.edu/~etzioni/papers/nli-iui03.pdf}{Popescu et al. 2003};
+ \href{https://forum.disi.unitn.it/~moschitt/articles/NLDB09.pdf}{Giordani and Moschitti 2010})
+\\ {\tt SELECT state1 FROM borders WHERE state2='montana'}
+\item FunQL: 
+(\href{}{Kate, Wong, and Mooney 2005})
+\\ {\tt answer(state(next-to-2(stateid('montana'))))}
+\item Lambda calculus: 
+(\href{}{Zettlemoyer and Collins 2005})
+\\ {\tt $\lambda$x.state(x)$\land$borders(x,montana)}
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{GEOQUERY: learning with indirect supervision}
+\begin{itemize}
+\item Kate and Mooney 2007 learn from multiple potential meaning representations, only one of which is correct.
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{NAVIGATION}
+MacMahon 2006
+Zettlemoyer 2013
+Mooney 2011
+\end{frame}
+
+\begin{frame}\frametitle{MAPTASK}
+HCRC Map Task Corpus (Anderson et al. 1991)
+Vogel and Jurafsky, 2010
+
+\end{frame}
+
+
+\begin{frame}\frametitle{SPORTSCASTER}
+
+\begin{itemize}
+\item Domain: RoboCup soccer games
+\item Input: game state
+\item Output: game commentary
+\item Learning: from sample commentaries
+\end{itemize}
+
+See \href{http://www.cs.utexas.edu/~ai-lab/pub-view.php?PubID=126770}{Chen and Mooney, 2008} 
+and \href{http://cs.stanford.edu/~pliang/papers}{Liang, Jordan, and Klein, 2009}
+for more information.
+
+\begin{center}
+\href{http://www.cs.utexas.edu/~ai-lab/pub-view.php?PubID=126770}{
+\includegraphics[height=.7\textheight]{images/chen-sportscast.png}}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Learning to map video to language}
+\begin{itemize}
+\item Domain: human physical actions
+\item Input: video
+\item Output: verbal description
+\item Learning: none, manually built
+\end{itemize}
+
+\begin{center}
+\href{http://groups.csail.mit.edu/genesis/movies/redandbluemen.mp4}{
+\includegraphics[height=.7\textheight]{images/redandbluemen.png}}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Learning to map video to language}
+\begin{center}
+More vision demonstrations from the MIT Genesis Group:
+\vspace{1em}
+
+\href{http://groups.csail.mit.edu/genesis/visiondemonstrations}{
+\includegraphics[height=.7\textheight]{images/genesis-vision.png}}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Reinforcement learning for mapping instructions to actions}
+\begin{itemize}
+\item Domain: Windows PC interface, puzzles, games
+\item Input: Help documents
+\item Output: User action sequence
+\item Learning: Reinforcement learning via reward signal
+\end{itemize}
+See \href{http://groups.csail.mit.edu/rbg/code/rl}{Branavan et al. 2009},
+\href{http://groups.csail.mit.edu/rbg/code/rl-hli}{2010},
+\href{http://groups.csail.mit.edu/rbg/code/civ}{2011}, and
+\href{http://people.csail.mit.edu/branavan}{Branavan's thesis}
+for more information.
+\begin{center}
+\href{http://groups.csail.mit.edu/rbg/code/civ}{
+\includegraphics[width=\textwidth]{images/branavan-civ2.png}}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Reinforcement learning for mapping instructions to actions}
+\begin{center}
+\href{http://groups.csail.mit.edu/rbg/code/rl}{
+\includegraphics[angle=90,width=\textwidth]{images/branavan-crossblock.pdf}}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Reinforcement learning for mapping instructions to actions}
+\begin{center}
+\href{http://groups.csail.mit.edu/rbg/code/rl-hli}{
+\includegraphics[angle=90,width=\textwidth]{images/branavan-windows.pdf}}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Reinforcement learning for mapping instructions to actions}
+\begin{center}
+\href{http://groups.csail.mit.edu/rbg/code/civ}{
+\includegraphics[width=\textwidth]{images/branavan-civ.png}}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{FREECELL}
+Eisenstein et al. 2009
 \end{frame}
 
 People:
