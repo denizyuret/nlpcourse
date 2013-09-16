@@ -13,7 +13,7 @@
 \maketitle
 \end{frame}
 
-\begin{frame}\frametitle{SHRDLU}
+\begin{frame}\frametitle{SHRDLU: mapping sentences to procedures}
 
 \begin{itemize}
 \item Domain: blocks in a virtual world
@@ -93,7 +93,7 @@ Note that the resulting procedure depends on both the sentence
 and the current state of the world.
 \end{frame}
 
-\begin{frame}\frametitle{START}
+\begin{frame}\frametitle{START: mapping questions to answers}
 
 \begin{itemize}
 \item Domain: simplified text, structured websites
@@ -177,7 +177,32 @@ Miriam presented a gift to Gabriela.
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{GEOQUERY}
+\begin{frame}\frametitle{WORDSEYE: mapping descriptions to scenes}
+
+\begin{itemize}
+\item Domain: visual scenes
+\item Input: user descriptions
+\item Output: generated scenes
+\item Learning: none, manually built
+\end{itemize}
+
+See \href{http://www1.cs.columbia.edu/~coyne/papers/wordseye_siggraph.pdf}{Coyne and Sproat, 2001}, click on image for more examples.
+
+\begin{columns}[c]
+\column{.4\textwidth}\scriptsize
+John uses the crossbow. He rides the horse by the store.
+The store is under the large willow. The small allosaurus is in front
+of the horse. The dinosaur faces John. A gigantic teacup is in front
+of the store. The dinosaur is in front of the horse. The gigantic
+mushroom is in the teacup. The castle is to the right of the store.
+\column{.6\textwidth}
+\href{http://www.wordseye.com}{
+\includegraphics[height=.6\textwidth]{images/coyne-wordseye.png}}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}\frametitle{GEOQUERY: mapping questions to logical queries}
 
 \begin{itemize}
 \item Domain: US Geography Database
@@ -211,7 +236,9 @@ Note: Other databases commonly used in semantic parsing literature in addition t
 \href{http://www.cs.utexas.edu/users/ml/nldata/geo.html}{\sc geoquery} include
 \href{http://www.cs.utexas.edu/users/ml/nldata/restquery.html}{\sc rest} (restaurant information in N. California),
 \href{http://www.cs.utexas.edu/users/ml/nldata/jobquery.html}{\sc jobs} (job announcements from austin.jobs),
-\href{http://www.cs.utexas.edu/users/ml/nldata/clang.html}{\sc clang} (the RoboCup coach language).
+\href{http://www.cs.utexas.edu/users/ml/nldata/clang.html}{\sc clang} (the RoboCup coach language),
+\href{http://www.ldc.upenn.edu/Catalog/docs/LDC93S4B/corpus.html}{\sc atis} (Air travel information system).
+%% TODO: Find and download ATIS.
 \end{frame}
 
 \begin{frame}\frametitle{GEOQUERY: example questions}
@@ -239,41 +266,139 @@ Example: What states border Montana?
 %% {\tt (SBARQ (WHNP (WP What) (NNS states)) \\ \hspace{8ex} (SQ (VP (VBP border) (NP (NNP Montana)))))}
 \item Prolog:
 (\href{http://aaaipress.org/Papers/AAAI/1996/AAAI96-156.pdf}{Zelle and Mooney 1996}; 
- \href{}{Tang and Mooney 2001})
+ \href{http://www.cs.utexas.edu/~ai-lab/pub-view.php?PubID=51440}{Tang and Mooney 2001})
 \\ {\tt \small answer(A,(state(A),next-to(A,B),const(B,stateid(montana))))}
 \item SQL:
 (\href{http://homes.cs.washington.edu/~etzioni/papers/nli-iui03.pdf}{Popescu et al. 2003};
  \href{https://forum.disi.unitn.it/~moschitt/articles/NLDB09.pdf}{Giordani and Moschitti 2010})
 \\ {\tt SELECT state1 FROM borders WHERE state2='montana'}
 \item FunQL: 
-(\href{}{Kate, Wong, and Mooney 2005})
+(\href{http://www.cs.utexas.edu/~ai-lab/pub-view.php?PubID=51486}{Kate, Wong, and Mooney 2005})
 \\ {\tt answer(state(next-to-2(stateid('montana'))))}
 \item Lambda calculus: 
-(\href{}{Zettlemoyer and Collins 2005})
+(\href{http://homes.cs.washington.edu/~lsz/papers/zc-uai05.pdf}{Zettlemoyer and Collins 2005})
 \\ {\tt $\lambda$x.state(x)$\land$borders(x,montana)}
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{GEOQUERY: learning with indirect supervision}
+\begin{frame}\frametitle{GEOQUERY: syntax as intermediate representation}
+%% TODO: This is not GEOQUERY but ATIS
+Phrase Structure
+(\href{http://acl.ldc.upenn.edu/P/P96/P96-1008.pdf}{Miller et al. 1996})
+\begin{center}
+\href{http://acl.ldc.upenn.edu/P/P96/P96-1008.pdf}{
+\includegraphics[width=\textwidth]{images/miller-ps.png}}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{GEOQUERY: syntax as intermediate representation}
+%% TODO: This is not quite DP.  Would be nice to have the same example
+Dependency Structure
+(\href{http://aclweb.org/anthology/J/J13/J13-2005.pdf}{Liang et al. 2013})
+\begin{center}
+\href{http://aclweb.org/anthology/J/J13/J13-2005.pdf}{
+\includegraphics[width=\textwidth]{images/liang-dep.png}}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{GEOQUERY: syntax as intermediate representation}
+%% TODO: Would be nice to have the same example
+Combinatory Categorial Grammar
+(\href{http://homes.cs.washington.edu/~lsz/papers/zc-uai05.pdf}{Zettlemoyer and Collins, 2005})
+\begin{center}
+\href{http://homes.cs.washington.edu/~lsz/papers/zc-uai05-slides.pdf}{
+\includegraphics[width=\textwidth]{images/zettlemoyer-ccg.png}}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{GEOQUERY: learning with less supervision}
+(\href{http://www.cs.utexas.edu/~ai-lab/pub-view.php?PubID=126763}{Kate and Mooney, 2007}) learn from multiple potential meaning representations, only one of which is correct.
+\begin{center}
+\href{http://www.cs.utexas.edu/~ai-lab/pub-view.php?PubID=126763}{
+\includegraphics[width=\textwidth]{images/kate-ambiguous.png}}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{GEOQUERY: learning with less supervision}
+Recent work learns directly from question answer pairs without annotated logical forms
+(\href{http://aclweb.org/anthology/W/W10/W10-2903.pdf}{Clarke et al. 2010},
+\href{http://www.newdesign.aclweb.org/anthology-new/P/P11/P11-1149.pdf}{Goldwasser et al. 2011},
+\href{http://aclweb.org/anthology/J/J13/J13-2005.pdf}{Liang et al. 2013}).
+
 \begin{itemize}
-\item Kate and Mooney 2007 learn from multiple potential meaning representations, only one of which is correct.
+\item What is the capital of Texas?
+\\ {\sl Austin}
+\item What is the population of Colorado?
+\\ {\sl 5.2 million}
+\item What is the area of the largest state?
+\\ {\sl 1.7 million km$^2$}
+\item What states border Montana?
+\\ {\sl Idaho, North Dakota, South Dakota, Wyoming}
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{NAVIGATION}
-MacMahon 2006
-Zettlemoyer 2013
-Mooney 2011
+\begin{frame}\frametitle{NAVIGATION: mapping instructions to actions}
+%% TODO: download macmahon data
+\begin{itemize}
+\item Domain: virtual navigation
+\item Input: navigation directions
+\item Output: appropriate moves
+\item Learning: from direction-move samples
+\end{itemize}
+See
+\href{http://www.aaai.org/Papers/AAAI/2006/AAAI06-232.pdf}{MacMahon et al. 2006}, 
+\href{http://www.cs.utexas.edu/users/ml/papers/chen.aaai11.pdf}{Chen and Mooney, 2011},
+\href{http://aclweb.org/anthology/Q/Q13/Q13-1005.pdf}{Artzi and Zettlemoyer, 2013}.
+Click on the image for a demo.
+\begin{columns}[c]
+\column{.55\textwidth}
+\begin{itemize}\scriptsize
+\item Take your first left.  Go all the way down until you hit a dead end.
+\item Go towards the coat hanger and turn left at it.  Go straight down the hallway and the dead end is position 4.
+\item Walk to the hat rack.  Turn left.  The carpet should have green octagons.  Go to the end of this alley. This is p-4.
+\item Walk forward once.  Turn left.   Walk forward twice.
+\end{itemize}
+\column{.5\textwidth}
+\href{http://www.cs.utexas.edu/users/ml/clamp/navigation}{
+\includegraphics[width=\textwidth]{images/macmahon-navigation.png}}
+\end{columns}
 \end{frame}
 
-\begin{frame}\frametitle{MAPTASK}
-HCRC Map Task Corpus (Anderson et al. 1991)
-Vogel and Jurafsky, 2010
 
+
+\begin{frame}\frametitle{MAPTASK: mapping directions to paths}
+\begin{columns}[c]
+\column{.5\textwidth}
+\begin{itemize}
+\item Domain: Map directions
+\item Input: Path description
+\item Output: Path on map
+\item Learning: Reinforcement
+\end{itemize}
+
+See the HCRC Map Task Corpus from
+\href{http://groups.inf.ed.ac.uk/maptask}{(Anderson et al. 1991)} and
+\href{http://nlp.stanford.edu/pubs/spatial-acl2010.pdf}{(Vogel and Jurafsky, 2010)} 
+for more information.
+\vspace*{5mm}
+
+\fbox{\parbox{\textwidth}{\scriptsize
+Directions:
+\\1. right go vertically down until you're underneath eh diamond mine
+\\2. then eh go right until you're between springbok boks and highest viewpoint
+\\3. right go right ah right to your right
+\\4. then up around the uh highest viewpoint
+\\5. eh once you’re once you’ve eh passed it right go vertically down to just above eh safari truck
+}}
+
+\column{.5\textwidth}
+\href{http://groups.inf.ed.ac.uk/maptask}{
+\includegraphics[width=\textwidth]{images/vogel-maptask.pdf}}
+
+\end{columns}
 \end{frame}
 
-
-\begin{frame}\frametitle{SPORTSCASTER}
+\begin{frame}\frametitle{SPORTSCASTER: mapping game states to commentary}
 
 \begin{itemize}
 \item Domain: RoboCup soccer games
@@ -284,35 +409,21 @@ Vogel and Jurafsky, 2010
 
 See \href{http://www.cs.utexas.edu/~ai-lab/pub-view.php?PubID=126770}{Chen and Mooney, 2008} 
 and \href{http://cs.stanford.edu/~pliang/papers}{Liang, Jordan, and Klein, 2009}
-for more information.
+for more information, click on the image for a demo.
 
 \begin{center}
-\href{http://www.cs.utexas.edu/~ai-lab/pub-view.php?PubID=126770}{
+\href{http://www.cs.utexas.edu/users/ml/clamp/sportscasting}{
 \includegraphics[height=.7\textheight]{images/chen-sportscast.png}}
 \end{center}
 \end{frame}
 
-\begin{frame}\frametitle{Learning to map video to language}
-\begin{itemize}
-\item Domain: human physical actions
-\item Input: video
-\item Output: verbal description
-\item Learning: none, manually built
-\end{itemize}
-
+\begin{frame}\frametitle{FREECELL: mapping instructions to rules}
+\href{http://www.newdesign.aclweb.org/anthology/D/D09/D09-1100.pdf}{Eisenstein et al. 2009} and
+\href{http://dan-goldwasser.com/publications/ijcai2011.pdf}{Goldwasser and Roth, 2011} 
+learn how to play FreeCell from textual instructions.
 \begin{center}
-\href{http://groups.csail.mit.edu/genesis/movies/redandbluemen.mp4}{
-\includegraphics[height=.7\textheight]{images/redandbluemen.png}}
-\end{center}
-\end{frame}
-
-\begin{frame}\frametitle{Learning to map video to language}
-\begin{center}
-More vision demonstrations from the MIT Genesis Group:
-\vspace{1em}
-
-\href{http://groups.csail.mit.edu/genesis/visiondemonstrations}{
-\includegraphics[height=.7\textheight]{images/genesis-vision.png}}
+\href{http://dan-goldwasser.com/publications/ijcai2011.pdf}{
+\includegraphics[width=.8\textwidth]{images/roth-freecell.png}}
 \end{center}
 \end{frame}
 
@@ -355,8 +466,48 @@ for more information.
 \end{center}
 \end{frame}
 
-\begin{frame}\frametitle{FREECELL}
-Eisenstein et al. 2009
+\begin{frame}\frametitle{Learning to map video to language}
+\begin{itemize}
+\item Domain: human physical actions
+\item Input: video
+\item Output: verbal description
+\item Learning: none, manually built
+\end{itemize}
+
+\begin{center}
+\href{http://groups.csail.mit.edu/genesis/movies/redandbluemen.mp4}{
+\includegraphics[height=.7\textheight]{images/redandbluemen.png}}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Learning to map video to language}
+\begin{center}
+More vision demonstrations from the MIT Genesis Group:
+\vspace{1em}
+
+\href{http://groups.csail.mit.edu/genesis/visiondemonstrations}{
+\includegraphics[height=.7\textheight]{images/genesis-vision.png}}
+\end{center}
+\end{frame}
+
+
+\begin{frame}\frametitle{Course plan}
+Learn to map word strings to:
+\begin{itemize}
+\item probabilities
+\item categories (good/bad, economy/sports, spam/nonspam)
+\item tag strings (POS, WSD, NER, chunking)
+\item word strings in a different language (SMT)
+\item trees (parsing)
+\item semantic representations, narratives, graphs, actions, scenes...
+\end{itemize}
+using:
+\begin{itemize}
+\item generative models
+\item conditional models
+\item discriminative learning
+\item unsupervised learning
+\end{itemize}
 \end{frame}
 
 People:
@@ -375,6 +526,10 @@ Jordan
 Lexical:
 Siskind
 Roy
+
+Emergence:
+Simon Kirby (http://www.lel.ed.ac.uk/~simon/)
+Luc Steels (http://ai.vub.ac.be/members/steels)
 
 Introduction
 
