@@ -16,10 +16,10 @@ mallet-2.0.7: ../download/mallet-2.0.7.tar.gz
 	tar xvzf $<
 	cd $@; make
 
-srilm-1.7.0-Lite: ../download/srilm-1.7.0-Lite.tgz
+srilm-1.7.0: ../download/srilm-1.7.0.tgz
 	mkdir -p $@
 	cd $@; tar xvzf ../$<; make World
-# If this fails the first time read INSTALL and edit the Makefile 
+	# If this fails the first time read INSTALL and edit the Makefile 
 
 wasp-1.0: ../download/wasp-1.0.tar.gz
 	tar xvzf $<
