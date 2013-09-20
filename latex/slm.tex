@@ -1,0 +1,203 @@
+Statistical Language Modeling
+
+Statistical language models assign probabilities to
+strings\footnote{Strings are sequences of tokens where each token
+  comes from a finite vocabulary.  We will usually consider strings
+  where each token is a word, number, or a punctuation mark.  Other
+  examples of strings include DNA sequences, stock market moves,
+  musical notes, etc.}  in a language\footnote{This is as opposed to
+  grammars which specify what strings are part of a language and what
+  strings are not.  So we can view statistical language models as soft
+  grammars.}.  In this section we will cover n-gram language models
+which specify a probability distribution over strings by specifying
+which tokens can follow a given $n-1$ token prefix with what
+probability.  We will also introduce the concepts of generative
+models, maximum likelihood, entropy/perplexity, and significance
+testing.
+
+Why do we need them?
+
+Noisy channel models: X --> Y
+X is a string we'd like to know.
+Y is what we get (OCR, Speech, Translation)
+P(X|Y) ~ P(Y|X) P(X)
+The P(X) comes from the LM
+
+
+Generative Models
+
+In probability and statistics, a generative model is a model for
+randomly generating observable data, typically given some hidden
+parameters.  An n-gram language model (also confusingly known as a
+Markov chain of order n-1) is a model where the choice of each token
+depends on the past n-1 tokens.
+
+It is sometimes convenient to think of a generative model as a
+probabilistic program that can generate artificial data that looks
+like our observations.  We will call such programs generative
+procedures.  Here is the generative procedure for an n-gram language
+model:
+
+w[0] = <s>  // a special symbol denoting the start of the string
+for (i = 0; w[i] != </s>; i++) {
+  let p = a probability distribution over V+</s> conditional on the
+  last n-1 tokens up to and including w[i] (if there aren't n-1 tokens
+  yet shorten the context accordingly)
+  pick w[i+1] from V+</s> with probability p
+}
+
+The procedure deterministically starts every string with the token
+<s>.  It then starts generating tokens from the set of tokens in the
+vocabulary and possibly the special end-of-string token </s>.  It uses
+categorical distributions\footnote{A categorical distribution is a
+  generalization of Bernoulli distribution.  Bernoulli distribution
+  specifies the probabilities of two possible outcomes, categorical
+  distribution specifies the probabilities of |V| possible outcomes.}
+over V+</s> that depend on the last n-1 tokens generated.
+
+Note that the procedure uses a different probability distribution for
+each of the |V|^(n-1) different prefixes.  Each of these distributions
+specify |V+</s>| probabilities.  These all must be supplied to the
+program as parameters before it can work.  Once we have these O(V^N)
+parameters we can answer questions such as:
+
+- What is the probability of this program generating a certain string
+- What tokens are most likely to follow a given string
+- What are the most likely alternatives in the middle of a string
+- What tokens are most likely to precede a given string
+
+Review product rule, sum rule:
+
+p(a or b) = p(a) + p(b) if a, b disjoint (-p(a and b) otherwise)
+p(a and b) = p(a) p(b | a) = p(b) p(a | b)  always
+// cox has product rule and negation rule, no sum rule?
+
+
+
+Maximum Likelihood
+
+If we have parameters we can assign probabilities.  How do we get
+parameters?  From training data.
+
+If a context c is observed n times and it is followed by token w k
+times, what is the maximum likelihood estimate for p(w|c)?
+// likelihood is a function of q!
+
+Find q such that p(data|q) is maximized.
+
+data = sequence of k w's and n-k non-w's
+
+p(data|q) = q^k (1-q)^(n-k)
+
+logp(data|q) = k log(q) + (n-k) log(1-q)
+
+dlogp/dq = k / q - (n-k) / (1-q) = 0
+
+k (1-q)  = (n-k) q
+k - kq = nq - kq
+q = k/n
+
+In general the ML estimate gives probabilities proportional to
+observation frequencies.
+
+
+
+Evaluation
+
+So given parameters we can assign probabilities to every string using
+the generative model.
+
+Given training data we can generate parameters using maximum
+likelihood.
+
+ML is not the only way to generate parameters.  There are other
+methods.  How do we compare them?  
+
+We need an unseen test set and an evaluation function.
+
+We compare log likelihood on the test set:
+
+eval1 = sum_i log pi
+
+Related measures:
+
+entropy H(p) = E_p(-logp) = -sum_w pw log pw 
+// number of bits in ideal compression
+// arithmetic average of log(1/p)
+
+cross-entropy H(p,q) = E_p(-logq) = -sum_w pw log qw  
+// what would happen if we used q instead of perfect p
+
+KL distance D(p,q) = sum_w pw log pw - sum_w pw log qw  
+// cost of using q instead of p. = H(p,q) - H(p)
+
+perplexity Perp(p) = 2^H(p)
+// give examples of uniform distribution
+// geometric average of 1/p
+
+
+
+Significance testing
+
+If we have more than one way of estimating parameters, assigning
+probabilities how can we be sure that one is better than the other?
+
+Answer: try lots of times (cross validation)
+compute standard error
+
+Reasons for variation: 
+Given test set and training set it is all deterministic (may not be)
+Training set randomness (same algorithm gives different models)
+Test set randomness (same model gives different test set results)
+
+Simple example: standard error of a bernoulli parameter
+We estimate q = k/n, how good is this estimate?
+Related question: if real parameter were p, and we tried this lots of
+times, how spread out would q be?
+
+q ~ sum of n bernoulli variables
+p(1)=p, p(0)=1-p, E(x)=p, E(x^2)=p, Var(x)=E(x^2) - E(x)^2 = p-p*p 
+E(q) = p
+Var(nq) = n Var(x) = np(1-p)
+Var(Cx) = C^2 Var(x)
+Var(q) = p(1-p)/n < 1/4n
+Std(q) < 1/(2 sqrt(n))
+
+Example: p=1/2
+n=100 => Std(q) < 1/20 = 5\%  // i.e [45%,55%] is the one stderr window
+n=10000 => Std(q) < 1/200 = .5\% // i.e. [49.5%,50.5%]
+
+Question: if you have two values and their standard errors, when can
+you say one is better than the other?
+
+Read student's t-test from wikipedia.
+
+Can't we do back of the envelope?
+
+Need to define paired / unpaired, equal / unequal variance, p-values
+etc.
+
+p-value is the area under the curve of the test statistic for values
+that are more extreme than the observed.
+
+Recommended method:
+
+Run 10-fold cross validation.
+Test both algorithms on same folds.
+Plot standard error bars.
+We have 10 paired values that can be used in dependent t-test for
+paired samples.
+
+We have two things to compute stderr with: test set size and
+cross-validation fold differences.  Test set size is probably not
+easily applicable for anything except correct/incorrect?  Fold
+differences are always ok.
+
+David Barber has a Bayesian test:
+http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.11.293&rep=rep1&type=pdf
+
+StackExchange recommends McNemar test for a single run:
+http://stats.stackexchange.com/questions/26271/comparing-two-classifier-accuracy-results-for-statistical-significance-with-t-te
+http://en.wikipedia.org/wiki/McNemar%27s_test
+
+Chapter 5.3 in manning and schutze covers significance testing.
