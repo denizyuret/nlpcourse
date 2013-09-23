@@ -6,6 +6,15 @@ TODO:
 - significance testing more detail
 - prepare quiz and homework
 
+LEARNING OUTCOMES:
+
+- Generative models
+- Maximum likelihood
+- Overfitting and regularization (applying a prior) by smoothing (discounting)
+- Entropy and perplexity (specific to slm)
+- Uncertainty in experiments
+
+
 Statistical Language Modeling
 
 Statistical language models assign probabilities to
@@ -108,6 +117,8 @@ q = k/n
 In general the ML estimate gives probabilities proportional to
 observation frequencies.
 
+Q: Calculate the ML estimate for gaussian mean for fixed variance.
+
 
 
 Evaluation
@@ -143,6 +154,7 @@ perplexity Perp(p) = 2^H(p)
 // give examples of uniform distribution
 // geometric average of 1/p
 
+Q: is it possible to beat ML on the training set?
 
 
 Significance testing
@@ -209,3 +221,319 @@ http://stats.stackexchange.com/questions/26271/comparing-two-classifier-accuracy
 http://en.wikipedia.org/wiki/McNemar%27s_test
 
 Chapter 5.3 in manning and schutze covers significance testing.
+
+
+
+Overfitting and Regularization
+
+ML models overfit, they give too much probability to data they have
+seen and too little to data they have not seen.  In case of SLM, if we
+have observed 2 distinct words following an n-1-gram all the other
+words get zero probability, which is unreasonable and will do poorly
+on the test set.
+
+Q: what happens to log-likelihood and perplexity when an unseen word
+appears with the ML model?
+
+
+** Backoff vs Interpolated
+
+       N-gram models try to estimate the probability of a word z in the context of the  previous  n-1  words
+       (a_), i.e., Pr(z|a_).  We will denote this conditional probability using p(a_z) for convenience.  One
+       way to estimate p(a_z) is to look at the number of times word z has followed the previous  n-1  words
+       (a_):
+
+       (1)  p(a_z) = c(a_z)/c(a_)
+
+       This  is  known  as  the  maximum likelihood (ML) estimate.  Unfortunately it does not work very well
+       because it assigns zero probability to N-grams that have not been observed in the training data.   To
+       avoid  the zero probabilities, we take some probability mass from the observed N-grams and distribute
+       it to unobserved N-grams.  Such redistribution is known as smoothing or discounting.
+
+
+Discount methods: instead of p_ML = Cw/C use:
+- Additive: (Cw+A)/(C+VA)
+- Absolute discounting: (Cw-A)/C
+- Jelinek-Mercer: \lambda * (Cw/C)
+- MacKay-Peto (Dirichlet): Cw/(C+A)
+- Good-Turing: (Cw+1)/C * V(Cw+1)/V(Cw)
+- Kneser-Ney: (Cw-A)/C but with modified lower order
+
+
+       Most existing smoothing algorithms can be described by the following equation:
+
+       (2)  p(a_z) = (c(a_z) > 0) ? f(a_z) : bow(a_) p(_z)   ; backoff
+
+       (4)  p(a_z) = g(a_z) + bow(a_) p(_z)   ; interpolated
+
+       If the N-gram a_z has been observed in the training data, we use the distribution f(a_z).   Typically
+       f(a_z)  is  discounted to be less than the ML estimate so we have some leftover probability for the z
+       words unseen in the context (a_).  Different algorithms mainly differ on how  they  discount  the  ML
+       estimate to get f(a_z).
+
+       If  the  N-gram  a_z  has not been observed in the training data, we use the lower order distribution
+       p(_z).  If the context has never been observed (c(a_) = 0), we can use the lower  order  distribution
+       directly  (bow(a_) = 1).  Otherwise we need to compute a backoff weight (bow) to make sure probabili-
+       ties are normalized:
+
+            Sum_z p(a_z) = 1
+
+
+** Show normalization calculation for some of them:
+
+Normalization for Additive (there are no zero counts, so no backoff):
+    
+   g(a_z)  = (c(a_z) + A) / (c(a_) + AV)  ; additive smoothing
+   Sum_Z g(a_z) = Sum_Z c(a_z) / (c(a_) + AV) + Sum_Z A / (c(a_) + AV)
+                = 1
+
+
+Normalization for Jelinek Mercer:
+
+   p(a_z)  = g(a_z) + bow(a_) p(_z)   ; Eqn.4 - interpolated model
+   g(a_z)  = D c(a_z) / c(a_)         ; Jelinek Mercer
+   bow(a_) = 1 - Sum_Z1 g(a_z)
+           = 1 - Sum_Z1 D c(a_z) / c(a_)
+           = 1 - D
+
+
+BOW for interpolated absolute discounting:
+
+   p(a_z)  = g(a_z) + bow(a_) p(_z)   ; Eqn.4 - interpolated model
+   g(a_z)  = max(0, c(a_z) - D) / c(a_) ; absolute discounting
+   bow(a_) = 1 - Sum_Z1 g(a_z)        ; Eqn.5
+           = 1 - Sum_Z1 (c(a_z) - D) / c(a_)
+           = 1 - Sum_Z1 c(a_z)/c(a_) + Sum_Z1 D/c(a_)
+           = D n(a_*) / c(a_)
+
+              The suggested discount factor is:
+
+                   D = n1 / (n1 + 2*n2)
+
+BOW for Interpolated Dirichlet:
+
+   p(a_z)  = g(a_z) + bow(a_) p(_z)   ; Eqn.4 - interpolated model
+   g(a_z)  = c(a_z) / (c(a_) + A)         ; Dirichlet
+   bow(a_) = 1 - Sum_Z1 g(a_z)
+           = 1 - Sum_Z1 c(a_z) / (c(a_) + A)
+           = 1 - c(a_) / (c(a_) + A)
+           = A / (c(a_) + A)
+
+
+       General Normalization:
+
+       Let Z be the set of all words in the vocabulary, Z0 be the set of all words with c(a_z) = 0,  and  Z1
+       be the set of all words with c(a_z) > 0.  Given f(a_z), bow(a_) can be determined as follows:
+
+       (3)  Sum_Z  p(a_z) = 1
+            Sum_Z1 f(a_z) + Sum_Z0 bow(a_) p(_z) = 1
+            bow(a_) = (1 - Sum_Z1 f(a_z)) / Sum_Z0 p(_z)
+                    = (1 - Sum_Z1 f(a_z)) / (1 - Sum_Z1 p(_z))
+                    = (1 - Sum_Z1 f(a_z)) / (1 - Sum_Z1 f(_z))
+
+       Smoothing  is  generally  done in one of two ways.  The backoff models compute p(a_z) based on the N-
+       gram counts c(a_z) when c(a_z) > 0, and only consider lower order  counts  c(_z)  when  c(a_z)  =  0.
+       Interpolated  models  take  lower order counts into account when c(a_z) > 0 as well.  A common way to
+       express an interpolated model is:
+
+       (4)  p(a_z) = g(a_z) + bow(a_) p(_z)
+
+       Where g(a_z) = 0 when c(a_z) = 0 and it is discounted to be less than the ML estimate when c(a_z) > 0
+       to  reserve some probability mass for the unseen z words.  Given g(a_z), bow(a_) can be determined as
+       follows:
+
+       (5)  Sum_Z  p(a_z) = 1
+            Sum_Z1 g(a_z) + Sum_Z bow(a_) p(_z) = 1
+            bow(a_) = 1 - Sum_Z1 g(a_z)
+
+** ARPA Format:
+
+       An interpolated model can also be expressed in the form of equation (2), which is the way it is  rep-
+       resented in the ARPA format model files in SRILM:
+
+       (6)  f(a_z) = g(a_z) + bow(a_) p(_z)
+            p(a_z) = (c(a_z) > 0) ? f(a_z) : bow(a_) p(_z)
+
+       Most  algorithms  in  SRILM  have  both backoff and interpolated versions.  Empirically, interpolated
+       algorithms usually do better than the backoff ones, and Kneser-Ney does better than others.
+
+
+
+** Motivation for discount methods:
+
+All arithmetic operations: add (additive), subtract (abs discount),
+multiply (jelinek, gt) nominator, add to denominator (dirichlet).  We
+can use absolute discount as a regularization method with the single
+discount parameter controlling the amount of regularization.  Or maybe
+Jelinek Mercer or additive is a better example.  Dirichlet to
+illustrate probabilistic.
+
+** Motivation for Good-Turing
+
+Good-Turing proved that the total prob for future unseen words is the
+current frequency of one-counts.
+
+In general they suggest that the total prob for n-count words should
+be set to the current frequency of (n+1)-count words.
+
+This can be accomplished by modifying the counts:
+
+Cw' = (Cw+1) V(Cw+1)/V(Cw)  where V(Cw) is the number of words with Cw-count
+
+Notation: C is the corpus (or corpus count), V is the vocabulary (or
+vocab count).  Cw is the count of w in corpus.  Vn is the number of
+words with count=n.
+
+Goodman example:
+
+Imagine you are fishing
+
+There are 8 species: carp, perch, whitefish, trout, salmon, eel,
+catfish, bass
+
+You have caught 10 carp, 3 perch, 2 whitefish, 1 trout, 1 salmon, 1
+eel
+
+How likely is it that next species is new (I.e. catfish or bass) 
+3/18
+
+Assuming so, how likely is it that next species is trout?  
+Less than 1/18
+
+
+In this example: 
+C=18: sum of Cc=10, Cp=3, Cw=2, Ct=1, Cs=1, Ce=1, Ccat=0, Cb=0.
+V=8: sum of V0=2, V1=3, V2=1, V3=1, V10=1.
+
+So all zero counts should share V1/C equally, they get (1/C)(V1/V0)
+=(1/18)(3/2)=1/12 => total=2/12
+
+Each one count word gets: (2/C)(V2/V1), total=(2/C)V2
+This is what the total ML prob was for two counts!
+=(2/18)(1/3)=1/27 => total=1/9
+
+Each two count word gets: (3/C)(V3/V2), total=(3/C)V3
+This is what the total ML prob was for three counts!
+=(3/18)(1/1)=1/6 => total=1/6
+
+Each three count word gets: (4/C)(V4/V3), total=(4/C)V4
+Problem: V4=0, ooops.
+So counts need to be smoothed or need a cut-off.  See Chen&Goodman,
+Katz smoothing for details.
+
+
+** Motivation for Kneser-Ney
+
+       (2)  p(a_z) = (c(a_z) > 0) ? f(a_z) : bow(a_) p(_z)   ; backoff
+       (4)  p(a_z) = g(a_z) + bow(a_) p(_z)   ; interpolate
+
+We use p(_z) only when c(a_z)=0.  But we calculate it like we use it
+all the time.  How can we use the fact that c(a_z) was 0?
+
+Bigram example ``San Francisco''.  Say Francisco only appears after San.
+
+c(sf) = large
+c(xf) = 0 for x != s
+
+p(xf) should be very close to 0.
+
+p(xf) = bow(x_) p(f)
+
+p(f) is high, which will make p(xf) high!
+
+We should have estimated p(f) as low since it is only going to be used
+if not after following san.
+
+So set p(f) to V(*f), i.e. number of different words it follows,
+rather than C(*f)=C(f), i.e. number of times it was observed.
+
+To derive the formula:
+(i) use interpolated form (easier and better)
+       (4)  p(a_z) = g(a_z) + bow(a_) p(_z)   ; interpolate
+
+(ii) satisfy the marginal constraints:
+
+  sum_a p(ab) = Cb / C = p_ML(b)   ;; where p is the KN estimate
+
+= sum_a p(b|a) p(a)   ;; use Ca/C for p(a)
+
+= sum_a p(b|a) Ca/C = Cb/C
+
+Cb = sum_a Ca p(b|a) 
+
+   = sum_a Ca (max(0, Cab - D)/Ca + bow(a) p(b))
+
+bow(a) = V(a_) D / Ca
+
+Cb = sum_a Ca (max(0, Cab - D)/Ca + Va_ (D/Ca) p(b))
+   = sum_a max(0, Cab - D) + sum_a Va_ D p(b)
+
+p(b) = (Cb - sum_a max(0, Cab - D)) / sum_a Va_ D
+
+sum_a max(0, Cab - D) = Cb - V_b D
+
+p(b) = V_b D / sum_a Va_ D = V_b / sum_a Va_ = V_b / V
+
+
+** BOW calculation for Kneser-Ney
+
+-kndiscount and -ukndiscount
+       Kneser-Ney discounting.  This is similar to absolute discounting in that the discounted proba-
+       bility is computed by subtracting a constant D from the N-gram count.  The options -kndiscount
+       and -ukndiscount differ as to how this constant is computed.
+       The  main idea of Kneser-Ney is to use a modified probability estimate for lower order N-grams
+       used for backoff.  Specifically, the modified probability for a lower order N-gram is taken to
+       be proportional to the number of unique words that precede it in the training data.  With dis-
+       counting and normalization we get:
+
+            f(a_z) = (c(a_z) - D0) / c(a_)     ;; for highest order N-grams
+            f(_z)  = (n(*_z) - D1) / n(*_*)    ;; for lower order N-grams
+
+       where the n(*_z) notation represents the number of unique N-grams that match a  given  pattern
+       with  (*) used as a wildcard for a single word.  D0 and D1 represent two different discounting
+       constants, as each N-gram order uses a different discounting constant.  The  resulting  condi-
+       tional probability and the backoff weight is calculated as given in equations (2) and (3):
+
+            p(a_z)  = (c(a_z) > 0) ? f(a_z) : bow(a_) p(_z)     ; Eqn.2
+            bow(a_) = (1 - Sum_Z1 f(a_z)) / (1 - Sum_Z1 f(_z))  ; Eqn.3
+
+       The  option  -interpolate  is  used  to  create  the  interpolated versions of -kndiscount and
+       -ukndiscount.  In this case we have:
+
+            p(a_z) = g(a_z) + bow(a_) p(_z)  ; Eqn.4
+
+       Let Z1 be the set {z: c(a_z) > 0}.  For highest order N-grams we have:
+
+            g(a_z)  = max(0, c(a_z) - D) / c(a_)
+            bow(a_) = 1 - Sum_Z1 g(a_z)
+                    = 1 - Sum_Z1 c(a_z) / c(a_) + Sum_Z1 D / c(a_)
+                    = D n(a_*) / c(a_)
+
+       Let Z2 be the set {z: n(*_z) > 0}.  For lower order N-grams we have:
+
+            g(_z)  = max(0, n(*_z) - D) / n(*_*)
+            bow(_) = 1 - Sum_Z2 g(_z)
+                   = 1 - Sum_Z2 n(*_z) / n(*_*) + Sum_Z2 D / n(*_*)
+                   = D n(_*) / n(*_*)
+
+       The original Kneser-Ney discounting (-ukndiscount) uses one discounting constant for  each  N-
+       gram order.  These constants are estimated as
+
+            D = n1 / (n1 + 2*n2)
+
+       where n1 and n2 are the total number of N-grams with exactly one and two counts, respectively.
+       Chen and Goodman's modified Kneser-Ney discounting (-kndiscount) uses three  discounting  con-
+       stants  for  each  N-gram order, one for one-count N-grams, one for two-count N-grams, and one
+       for three-plus-count N-grams:
+
+            Y   = n1/(n1+2*n2)
+            D1  = 1 - 2Y(n2/n1)
+            D2  = 2 - 3Y(n3/n2)
+            D3+ = 3 - 4Y(n4/n3)
+
+
+** Motivation for Mackay-Peto
+
+Next lecture, possibly with Teh...
+
+MacKay explains Jelinek, Teh explains Kneser-Ney the Bayesian way?
