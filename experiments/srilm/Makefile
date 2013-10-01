@@ -70,7 +70,7 @@ brown-wsj03: ${BROWN} ${WSJ}
 
 
 wsj.lm.gz: ${WSJ}
-	ngram-count -unk -text ${WSJ} -lm $@
+	ngram-count -text ${WSJ} -lm $@
 
 clean:
 	rm wsj.lm.gz

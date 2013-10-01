@@ -1,3 +1,24 @@
+\documentclass[ignorenonframetext]{beamer}
+
+\newcommand{\vocab}{\mathcal{V}}
+\newcommand{\corpus}{\mathcal{C}}
+\newcommand{\pml}{p_{\textsc{ml}}}
+\newcommand{\sos}{$<$s$>$}
+\newcommand{\eos}{$<$/s$>$}
+
+\title{Learning to map strings to probabilities}
+\subtitle{Comp 542 Natural Language Processing}
+\author{Deniz Yuret}
+
+\hypersetup{colorlinks,urlcolor=red}
+
+\begin{document}
+
+\begin{frame}
+\maketitle
+\end{frame}
+
+
 TODO:
 - add section on smoothing methods and why they work?  proof of kneser ney?
 - can we do a bayesian one?  mackay-peto, teh pitman yor?
@@ -245,6 +266,12 @@ appears with the ML model?
 
        (1)  p(a_z) = c(a_z)/c(a_)
 
+\begin{frame}\frametitle{Maximum Likelihood}
+\begin{equation}
+\pml(c|ab) = \frac{C(abc)}{C(ab)}
+\end{equation}
+\end{frame}
+
        This  is  known  as  the  maximum likelihood (ML) estimate.  Unfortunately it does not work very well
        because it assigns zero probability to N-grams that have not been observed in the training data.   To
        avoid  the zero probabilities, we take some probability mass from the observed N-grams and distribute
@@ -259,6 +286,15 @@ Discount methods: instead of p_ML = Cw/C use:
 - Good-Turing: (Cw+1)/C * V(Cw+1)/V(Cw)
 - Kneser-Ney: (Cw-A)/C but with modified lower order
 
+\begin{frame}\frametitle{Discount (Smoothing) Methods}
+\begin{eqnarray*}
+p(c|ab) & \propto & C(abc) + A \\
+p(c|ab) & \propto & C(abc) - D \\
+p(c|ab) & \propto & \lambda C(abc) \\
+p(c|ab) & \propto & C(abc) / (C(ab) + A) \\
+p(c|ab) & \propto & (C(abc)+1)\vocab_{C+1}/\vocab_{C}
+\end{eqnarray*}
+\end{frame}
 
        Most existing smoothing algorithms can be described by the following equation:
 
@@ -283,9 +319,19 @@ Discount methods: instead of p_ML = Cw/C use:
 
 Normalization for Additive (there are no zero counts, so no backoff):
     
-   g(a_z)  = (c(a_z) + A) / (c(a_) + AV)  ; additive smoothing
-   Sum_Z g(a_z) = Sum_Z c(a_z) / (c(a_) + AV) + Sum_Z A / (c(a_) + AV)
+   p(a_z)  = (c(a_z) + A) / (c(a_) + AV)  ; additive smoothing
+   Sum_Z p(a_z) = Sum_Z c(a_z) / (c(a_) + AV) + Sum_Z A / (c(a_) + AV)
                 = 1
+
+\begin{frame}\frametitle{Additive Smoothing}
+\begin{eqnarray*}
+p(c|ab) &=& \frac{C(abc) + A}{C(ab) + A\vocab} \\
+\sum_{c\in\vocab} p(c|ab) &=& \sum_{c\in\vocab} \frac{C(abc)}{C(ab) +
+  A\vocab} + \sum_{c\in\vocab} \frac{A}{C(ab) + A\vocab} \\
+  &=& \frac{C(ab)}{C(ab) + A\vocab} + \frac{A\vocab}{C(ab) + A\vocab}\\
+  &=& 1
+\end{eqnarray*}
+\end{frame}
 
 
 Normalization for Jelinek Mercer:
@@ -296,6 +342,15 @@ Normalization for Jelinek Mercer:
            = 1 - Sum_Z1 D c(a_z) / c(a_)
            = 1 - D
 
+\begin{frame}\frametitle{Jelinek-Mercer (Deleted Interpolation)}
+\begin{eqnarray*}
+p(c|ab) &=& (1-\gamma(ab)) \frac{C(abc)}{C(ab)} + \gamma(ab) p(c|b) \\
+\sum_{c\in\vocab} p(c|ab) &=& (1-\gamma(ab)) \sum_{c\in\vocab}
+\frac{C(abc)}{C(ab)} + \gamma(ab) \sum_{c\in\vocab} p(c|b) \\
+&=& (1-\gamma(ab)) (1) + \gamma(ab) (1) \\
+&=& 1
+\end{eqnarray*}
+\end{frame}
 
 BOW for interpolated absolute discounting:
 
@@ -310,6 +365,20 @@ BOW for interpolated absolute discounting:
 
                    D = n1 / (n1 + 2*n2)
 
+\begin{frame}\frametitle{Absolute Discounting}
+\begin{eqnarray*}
+f(c|ab) &=& \frac{\max(0, C(abc) - D)}{C(ab)} \\
+p(c|ab) &=& f(c|ab) + \gamma(ab) p(c|b) \\
+\sum_{c\in\vocab} p(c|ab) &=& \frac{\sum_{c\in\vocab} \max(0,
+  C(abc)-D)}{C(ab)} + \gamma(ab) \sum_{c\in\vocab} p(c|b) \\
+1 &=& \frac{\sum_{c\in\vocab_{+}} C(abc)-D}{C(ab)} + \gamma(ab)
+(1) \\ 
+\gamma(ab) &=& 1 - \frac{\sum_{c\in\vocab_{+}} C(abc)}{C(ab)} +
+\frac{\sum_{c\in\vocab_{+}} D}{C(ab)} \\
+&=& \frac{|\vocab_{+}| D}{C(ab)}
+\end{eqnarray*}
+\end{frame}
+
 BOW for Interpolated Dirichlet:
 
    p(a_z)  = g(a_z) + bow(a_) p(_z)   ; Eqn.4 - interpolated model
@@ -319,6 +388,17 @@ BOW for Interpolated Dirichlet:
            = 1 - c(a_) / (c(a_) + A)
            = A / (c(a_) + A)
 
+
+\begin{frame}\frametitle{Dirichlet?}
+\begin{eqnarray*}
+f(c|ab) &=& \frac{C(abc)}{C(ab) + A} \\
+p(c|ab) &=& f(c|ab) + \gamma(ab) p(c|b) \\
+\sum_{c\in\vocab} p(c|ab) &=& \frac{\sum_{c\in\vocab} C(abc)}{C(ab) + A} + \gamma(ab) \sum_{c\in\vocab} p(c|b) \\
+1 &=& \frac{C(ab)}{C(ab) + A} + \gamma(ab) (1) \\ 
+\gamma(ab) &=& 1 - \frac{C(ab)}{C(ab) + A} \\
+&=& \frac{A}{C(ab) + A} \\
+\end{eqnarray*}
+\end{frame}
 
        General Normalization:
 
@@ -330,6 +410,27 @@ BOW for Interpolated Dirichlet:
             bow(a_) = (1 - Sum_Z1 f(a_z)) / Sum_Z0 p(_z)
                     = (1 - Sum_Z1 f(a_z)) / (1 - Sum_Z1 p(_z))
                     = (1 - Sum_Z1 f(a_z)) / (1 - Sum_Z1 f(_z))
+
+\begin{frame}\frametitle{Back-off vs. Interpolated}
+\begin{eqnarray*}
+p(c|ab) &=& (C(abc) > 0) ? f(c|ab) : \gamma(ab) p(c|b) \\
+p(c|ab) &=& f(c|ab) + \gamma(ab) p(c|b)
+\end{eqnarray*}
+\end{frame}
+
+\begin{frame}\frametitle{Normalization in back-off models}
+\begin{eqnarray*}
+p(c|ab) &=& (C(abc) > 0) ? f(c|ab) : \gamma(ab) p(c|b) \\
+\sum_{c\in\vocab} p(c|ab) &=& \sum_{c\in\vocab_{+}} f(c|ab) +
+\gamma(ab) \sum_{c\in\vocab_{0}} p(c|b) \\
+\gamma(ab) &=& \frac{1 - \sum_{c\in\vocab_{+}}
+  f(c|ab)}{\sum_{c\in\vocab_{0}} p(c|b)} \\
+&=& \frac{1 - \sum_{c\in\vocab_{+}} f(c|ab)}{1 - \sum_{c\in\vocab_{+}}
+  p(c|b)} \\
+&=& \frac{1 - \sum_{c\in\vocab_{+}} f(c|ab)}{1 - \sum_{c\in\vocab_{+}}
+  f(c|b)} \\
+\end{eqnarray*}
+\end{frame}
 
        Smoothing  is  generally  done in one of two ways.  The backoff models compute p(a_z) based on the N-
        gram counts c(a_z) when c(a_z) > 0, and only consider lower order  counts  c(_z)  when  c(a_z)  =  0.
@@ -346,6 +447,15 @@ BOW for Interpolated Dirichlet:
             Sum_Z1 g(a_z) + Sum_Z bow(a_) p(_z) = 1
             bow(a_) = 1 - Sum_Z1 g(a_z)
 
+\begin{frame}\frametitle{Normalization in interpolated models}
+\begin{eqnarray*}
+p(c|ab) &=& f(c|ab) + \gamma(ab) p(c|b) \\
+\sum_{c\in\vocab} p(c|ab) &=& \sum_{c\in\vocab_{+}} f(c|ab) +
+\gamma(ab) \sum_{c\in\vocab} p(c|b) \\
+\gamma(ab) &=& 1 - \sum_{c\in\vocab_{+}} f(c|ab)
+\end{eqnarray*}
+\end{frame}
+
 ** ARPA Format:
 
        An interpolated model can also be expressed in the form of equation (2), which is the way it is  rep-
@@ -357,7 +467,40 @@ BOW for Interpolated Dirichlet:
        Most  algorithms  in  SRILM  have  both backoff and interpolated versions.  Empirically, interpolated
        algorithms usually do better than the backoff ones, and Kneser-Ney does better than others.
 
+\begin{frame}[fragile]\frametitle{ARPA format}
+\scriptsize
+\begin{verbatim}
+\data\
+ngram 1=49208
+ngram 2=402095
+ngram 3=105292
 
+\1-grams:
+...
+-5.242319	approves	-0.1590842
+-5.388447	approving	-0.2031582
+-5.610296	approximate	-0.1472198
+...
+\2-grams:
+...
+-2.774657	approval but
+-0.8375884	approval by	-0.1785298
+-2.774657	approval came
+...
+\3-grams:
+...
+-1.121324	approval , the
+-0.806105	approval , which
+-1.121324	approval , would
+\end{verbatim}
+\end{frame}
+
+\begin{frame}\frametitle{Interpolated models in ARPA format}
+\begin{eqnarray*}
+g(c|ab) &=& f(c|ab) + \gamma(ab) p(c|b) \\
+p(c|ab) &=& (C(abc) > 0) ? g(c|ab) : \gamma(ab) p(c|b)
+\end{eqnarray*}
+\end{frame}
 
 ** Motivation for discount methods:
 
@@ -421,6 +564,57 @@ Problem: V4=0, ooops.
 So counts need to be smoothed or need a cut-off.  See Chen&Goodman,
 Katz smoothing for details.
 
+\begin{frame}\frametitle{Good-Turing}
+\begin{eqnarray*}
+r_{GT} &=& (r+1)\frac{\vocab_{r+1}}{\vocab_{r}} \\
+|\corpus| &=& \sum_{r=0}^\infty r\vocab_r \\
+&=?& \sum_{r=0}^\infty r_{GT}\vocab_r \\
+&=& \sum_{r=0}^\infty (r+1)\vocab_{r+1} \\
+&=& \sum_{r=1}^\infty r \vocab_r  \mbox{  this works if  } \forall r : \vocab_r > 0
+\end{eqnarray*}
+\end{frame}
+
+\begin{frame}\frametitle{Goodman example}
+\begin{eqnarray*}
+\vocab &=& \{ \mbox{carp, perch, whitefish, trout, salmon, eel,
+  catfish, bass} \} \\
+\corpus &=& [ \mbox{carp x 10, perch x 3, whitefish x 2, trout, salmon, eel} ] \\
+|\corpus| &=& 18, |\vocab| = 8, \vocab_0=2, \vocab_1=3, \vocab_2=1, \vocab_3=1,
+\vocab_{10}=1 \\
+\end{eqnarray*}
+\begin{eqnarray*}
+p_{ML}(\mbox{trout}) &=& 1/18 \\
+p_{GT}(\mbox{trout}) &=& \frac{2 \vocab_2 / \vocab_1}{|\corpus|} = 1/27 \\
+p_{ML}(\mbox{bass}) &=& 0 \\
+p_{GT}(\mbox{bass}) &=& \frac{ \vocab_1 / \vocab_0}{|\corpus|} = 1/12 \\
+p_{ML}(\mbox{perch}) &=& 1/6 \\
+p_{GT}(\mbox{perch}) &=& 0!!! \\
+\end{eqnarray*}
+
+\end{frame}
+
+\begin{frame}\frametitle{Katz}
+\begin{columns}[t]
+\column{.5\textwidth}
+\begin{eqnarray*}
+r^* &=& r \mbox{ , } \forall r>k \\
+C &=& \sum_{r=0}^{\infty} r\vocab_r = \sum_{r=0}^{\infty} r^*\vocab_r \\
+r-r^* &=& \mu (r-r_{GT}) \\
+0^* \vocab_0 &=& \vocab_1 = \sum_{r=1}^k (r-r^*)\vocab_r \\
+&=& \sum_{r=1}^k \mu (r-r_{GT})\vocab_r \\
+&=& \mu \sum_{r=1}^k r\vocab_r - (r+1)\vocab_{r+1} \\
+&=& \mu (\vocab_1 - (k+1)\vocab_{k+1}) \\
+\end{eqnarray*}
+\column{.5\textwidth}
+\begin{eqnarray*}
+\mu &=& \frac{\vocab_1}{\vocab_1 - (k+1)\vocab_{k+1}} \\
+r^* &=& r - \mu r + \mu r_{GT} \\
+d_r &=& r^*/r \\
+&=& 1 - \mu + \mu r_{GT}/r \\
+&=& \frac{r_{GT}/r - (k+1)\vocab_{k+1}/\vocab_1}{1 - (k+1)\vocab_{k+1}/\vocab_1}
+\end{eqnarray*}
+\end{columns}
+\end{frame}
 
 ** Motivation for Kneser-Ney
 
@@ -474,6 +668,18 @@ sum_a max(0, Cab - D) = Cb - V_b D
 
 p(b) = V_b D / sum_a Va_ D = V_b / sum_a Va_ = V_b / V
 
+\begin{frame}\frametitle{Kneser-Ney}
+\begin{eqnarray*}
+\pml(b) &=& C(b)/C = \sum_a p(ab) \\
+&=& \sum_a p(a) p(b|a) \\
+&\approx& \sum_a \frac{C(a)}{C} \left( \frac{\max(C(ab) - D, 0)}{C(a)}
++ \frac{p(b) \vocab_{a*} D}{C(a)} \right) \\
+C(b) &=& \sum_{a\in\vocab_{*b}} C(ab) - \sum_{a\in\vocab_{*b}} D +
+p(b) D \sum_{a\in\vocab} \vocab_{a*} \\
+&=& C(b) - \vocab_{*b} D + p(b) D \vocab_{**} \\
+p(b) &=& \vocab_{*b} / \vocab_{**} \\
+\end{eqnarray*}
+\end{frame}
 
 ** BOW calculation for Kneser-Ney
 
@@ -537,3 +743,35 @@ p(b) = V_b D / sum_a Va_ D = V_b / sum_a Va_ = V_b / V
 Next lecture, possibly with Teh...
 
 MacKay explains Jelinek, Teh explains Kneser-Ney the Bayesian way?
+
+%% \begin{frame}\frametitle{Bernoulli, Binomial, Beta}
+%% \begin{itemize}
+
+%% \end{itemize}
+%% \end{frame}
+
+%% \begin{frame}\frametitle{Laplace - Rule of Succession}
+
+%% \end{frame}
+
+%% \begin{frame}\frametitle{Categorical, Multinomial, Dirichlet}
+
+%% \end{frame}
+
+%% \begin{frame}\frametitle{Laplace and Additive Smoothing}
+
+%% \end{frame}
+
+%% \begin{frame}\frametitle{MacKay-Peto and Jelinek-Mercer}
+
+%% \end{frame}
+
+%% \begin{frame}\frametitle{Dirichlet, Pitman-Yor Processes}
+
+%% \end{frame}
+
+%% \begin{frame}\frametitle{Teh and Kneser-Ney}
+
+%% \end{frame}
+
+\end{document}
