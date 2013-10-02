@@ -30,20 +30,24 @@ MacKay explains Jelinek, Teh explains Kneser-Ney the Bayesian way?
   the parameters $Q$, their prior probability distribution
   $P(Q|\mathcal{H})$, and the way that the probability of the data $D$
   depends on the parameters $P(D|Q,\mathcal{H})$.
-\item Infer parameters $Q$ given data $D$:\footnote{The normalizing constant (evidence) is given by integrating the
-numerator:\[ P(D|\mathcal{H}) = \int P(D|Q,\mathcal{H})
-P(Q|\mathcal{H}) dQ
-\]
-}
-$\color{red}\textsl{posterior}=\frac{\textsl{likelihood}\times
-  \textsl{prior}}{\textsl{evidence}}$
+\item Infer parameters $Q$ given data $D$
+$\color{red}\left[\textsl{posterior}=\frac{\textsl{likelihood}\times
+  \textsl{prior}}{\textsl{evidence}}\right]$
 \[
-P(Q|D,\mathcal{H}) = \frac{P(D|Q,\mathcal{H}) P(Q|\mathcal{H})}{P(D|\mathcal{H})}
+P(Q|D,\mathcal{H}) = \frac{P(D|Q,\mathcal{H}) P(Q|\mathcal{H})}
+{P(D|\mathcal{H})\footnote{The normalizing
+  constant (evidence) can (sometimes) be ignored or is given by
+  integrating the numerator over $Q$:$ P(D|\mathcal{H}) = \int
+  P(D|Q,\mathcal{H}) P(Q|\mathcal{H}) dQ $
+}}
 \]
-\item Predict future data $D'$ given past $D$ {\small(predictive distribution)}:
+\item Predict future data $D'$ given past $D$ considering all $Q$:
+%{\small(predictive distribution)}:
 \[
 P(D'|D,\mathcal{H}) = \int P(D'|Q,\mathcal{H}) P(Q|D,\mathcal{H}) dQ
 \]
+\item {\color{red} These predictions will be optimal (no overfitting
+  etc.) BUT ONLY IF the model $\mathcal{H}$ is correct!}
 \end{itemize}
 \end{frame}
 
@@ -230,21 +234,29 @@ f(\mathbf{p};\boldsymbol{\alpha}) = \frac{1}{\mbox{B}(\boldsymbol{\alpha})}\,
 \begin{frame}\frametitle{Categorical, Multinomial, Dirichlet}
 Some properties of the Dirichlet distribution:
 \begin{itemize}
-\item Define $\alpha = \sum \alpha_k$ and $m_k = \alpha_k / \alpha$.
-  The vector $\mathbf{m}$ gives the mean and $\alpha$ measures
-  sharpness (large $\alpha$ means distribution sharply peaked around
-  $\mathbf{m}$): \[ f(\mathbf{p};\alpha \mathbf{m}) =
-  \frac{1}{\mbox{B}(\alpha \mathbf{m})}\, \prod_{k=1}^K p_k^{\alpha
-    m_k-1}
+%% \item Normalization: $\mbox{B}(\boldsymbol{\alpha})$ is the
+%%   multinomial Beta function:\[
+%% \mbox{B}(\boldsymbol\alpha) = \frac{\prod_{k=1}^K \Gamma(\alpha_k)}{\Gamma\bigl(\sum_{k=1}^K \alpha_k\bigr)}
+%% \]
+
+\item Alternative parametrization: Define $\sigma = \sum \alpha_k$ and
+  $m_k = \alpha_k / \sigma$.  The vector $\mathbf{m}$ gives the mean
+  and $\sigma$ measures sharpness (large $\sigma$ means distribution
+  sharply peaked around $\mathbf{m}$): \[ f(\mathbf{p};\sigma
+  \mathbf{m}) = \frac{1}{\mbox{B}(\sigma \mathbf{m})}\, \prod_{k=1}^K
+  p_k^{\sigma m_k-1}
 \]
-\item Expectation: $E(p_k) = \frac{\alpha_k}{\alpha}$.
 
-\item Mode: $p_k = \frac{\alpha_k - 1}{\alpha - K}$.
+\item Expectation: $E(p_k) = \frac{\alpha_k}{\sigma}$.
 
-\item Marginals: $p_k \sim \mbox{Beta}(\alpha_k, \alpha - \alpha_k)$.
+\item Mode: $p_k = \frac{\alpha_k - 1}{\sigma - K}\quad \mbox{ if all
+} \alpha_k > 1$.
+
+\item Marginals: $p_k \sim \mbox{Beta}(\alpha_k, \sigma - \alpha_k)$.
 
 \item Aggregation: $(p_1,p_2,\ldots,p_i+p_j,\ldots,p_K) \sim 
 \mbox{Dir}(\alpha_1,\alpha_2,\ldots,\alpha_i+\alpha_j,\ldots,\alpha_K)$.
+
 \end{itemize}
 \end{frame}
 
@@ -252,21 +264,42 @@ Some properties of the Dirichlet distribution:
 \begin{itemize}
 \item Let us assume a symmetric Dirichlet prior for $\mathbf{p}$ with
   $\alpha_k = \alpha$:\[
-f(\mathbf{p}) = \frac{1}{\mbox{B}(\boldsymbol{\alpha})}\,
-\prod_{k=1}^K p_k^{\alpha-1}
+f(\mathbf{p}) = \mbox{Dir}(\mathbf{p}|\boldsybol{\alpha}) = \frac{1}{\mbox{B}(\boldsymbol{\alpha})}\,
+\prod p_k^{\alpha-1}
 \]
 
 \item This will give us the following posterior: \[
-f(\mathbf{p}|\mathbf{x}) \propto \prod p_k^{x_k + \alpha - 1}
+f(\mathbf{p}|\mathbf{x}) = \mbox{Dir}(\mathbf{p}|\mathbf{x}+\boldsymbol{\alpha})
+\propto \prod p_k^{x_k + \alpha - 1}
 \]
 
-\item The mean of the posterior gives additive smoothing:\[
-E(p_k) = \frac{x_k + \alpha}{\sum x_k + K\alpha}
-\]
+\item Compute the probability of the next word
+  $w_{n+1}=k$:\begin{eqnarray*}
+\Pr(w_{n+1}=k|\mathbf{x}) &=& \int \Pr(w_{n+1}=k|\mathbf{p})
+f(\mathbf{p}|\mathbf{x}) d\mathbf{p} \\
+&=& \int p_k f(\mathbf{p}|\mathbf{x}) d\mathbf{p} \\
+&=& E_{\mathbf{p}|\mathbf{x}}(p_k)\\
+&=& \frac{x_k + \alpha}{\sum x_k + K\alpha}
+\end{eqnarray*}
 
-\item Is this the same as using the predictive distribution?
+\end{itemize}
+\end{frame}
 
-\item Why does it not work very well?
+\begin{frame}\frametitle{What went wrong?}
+\begin{itemize}
+\item We followed probabilistic inference rules perfectly.  Why does
+  additive smoothing perform so bad?
+\item The problem must be with the assumptions of our model
+  $\mathcal{H}$: Independent and identical symmetric Dirichlet priors
+  for every context!  This completely ignores unigram probabilities,
+  (n-1)-gram probabilities, similarity between contexts, etc.
+\item (\href{http://www2.denizyuret.com/ref/mackay/lang4.pdf}{MacKay
+  and Peto, 1995}) derive a model similar to Jelinek-Mercer by using
+  better Dirichlet priors.
+\item (\href{http://aclweb.org/anthology/P/P06/P06-1124.pdf}{Teh,
+  2006}) derives a model similar to Kneser-Ney using Pitman-Yor
+  processes (which are a generalization of Dirichlet processes, which
+  are infinite generalizations of the Dirichlet distribution).
 \end{itemize}
 \end{frame}
 
