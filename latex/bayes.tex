@@ -1,0 +1,285 @@
+\documentclass[ignorenonframetext]{beamer}
+
+\newcommand{\vocab}{\mathcal{V}}
+\newcommand{\corpus}{\mathcal{C}}
+\newcommand{\pml}{p_{\textsc{ml}}}
+\newcommand{\sos}{$<$s$>$}
+\newcommand{\eos}{$<$/s$>$}
+
+\title{Interlude on Probabilistic Inference}
+\subtitle{Comp 542 Natural Language Processing}
+\author{Deniz Yuret}
+
+\hypersetup{colorlinks,urlcolor=red}
+
+\begin{document}
+
+\begin{frame}
+\maketitle
+\end{frame}
+
+** Motivation for Mackay-Peto
+
+Next lecture, possibly with Teh...
+
+MacKay explains Jelinek, Teh explains Kneser-Ney the Bayesian way?
+
+\begin{frame}\frametitle{Probabilistic Inference (\href{http://www2.denizyuret.com/ref/mackay/lang4.pdf}{Mackay and Peto, 1995})}
+\begin{itemize}
+\item Make all assumptions explicit: A model $\mathcal{H}$ specifies
+  the parameters $Q$, their prior probability distribution
+  $P(Q|\mathcal{H})$, and the way that the probability of the data $D$
+  depends on the parameters $P(D|Q,\mathcal{H})$.
+\item Infer parameters $Q$ given data $D$:\footnote{The normalizing constant (evidence) is given by integrating the
+numerator:\[ P(D|\mathcal{H}) = \int P(D|Q,\mathcal{H})
+P(Q|\mathcal{H}) dQ
+\]
+}
+$\color{red}\textsl{posterior}=\frac{\textsl{likelihood}\times
+  \textsl{prior}}{\textsl{evidence}}$
+\[
+P(Q|D,\mathcal{H}) = \frac{P(D|Q,\mathcal{H}) P(Q|\mathcal{H})}{P(D|\mathcal{H})}
+\]
+\item Predict future data $D'$ given past $D$ {\small(predictive distribution)}:
+\[
+P(D'|D,\mathcal{H}) = \int P(D'|Q,\mathcal{H}) P(Q|D,\mathcal{H}) dQ
+\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Cox Axioms (from \href{http://www.inference.phy.cam.ac.uk/itila}{MacKay, 2003})}\small
+
+\begin{description}
+%% \item[Notation\puncspace] Let `the degree of belief in proposition
+%%   $x$'
+%%   be denoted by $B(x)$. The negation of $x$
+%%   ({\sc not}-$x$) is written $\overline{x}$.
+%%   The degree of belief in a conditional proposition,
+%%   %for example, the belief in
+%%   `$x$, assuming proposition $y$ to be true',
+%%   is represented by $B(x \given y)$.
+\item[Axiom 1\puncspace] Degrees of belief can be ordered;
+  if $B(x)$ is `greater' than $B(y)$, and 
+  $B(y)$ is `greater' than $B(z)$, then
+   $B(x)$ is `greater' than $B(z)$.
+  ({\sf Consequence:} beliefs can be mapped onto real numbers.)
+\item[Axiom 2\puncspace]  The degree of belief in a proposition $x$
+  and its negation  $\overline{x}$ are related. There is a
+  function $f$ such that
+\[
+B(x) = f[ B( \overline{x} ) ] .
+\]
+\item[Axiom 3\puncspace]   The degree of belief in a conjunction  of
+  propositions
+  $x,y$ ($x\,\mbox{\sc and}\,y$)
+  is related to 
+ the degree of belief in the conditional proposition $x | y$
+ and  the degree of belief in the proposition $y$.
+ There is a function  $g$ such that
+\[
+B(x,y) = g \left[ B(x | y)  , B(y) \right] .
+\]
+\end{description}
+
+If a set of beliefs satisfy these
+ axioms then they can be mapped onto probabilities satisfying
+ $P(\mbox{\sc false}) = 0$,
+ $P(\mbox{\sc true}) = 1$,
+ $0 \leq P(x) \leq  1$, and 
+ the rules of probability: $
+ P(x) = 1 - P( \overline{x} ) \mbox{ and }
+ P(x,y) =  P(x | y)  P(y).
+$
+\end{frame}
+
+\begin{frame}\frametitle{\textcolor{red}{Bernoulli}, Binomial, Beta}
+The Bernoulli distribution models two possible outcomes (k=0 or k=1)
+with parameter $p\in [0,1]$:\[
+\Pr(X=k) = \begin{cases} p & \text{if }k=1, \\[6pt] 1-p & \text {if
+  }k=0.\end{cases}
+\]
+Here is an alternative way to express the Bernoulli pmf:\[
+\Pr(X=k) = p^k (1-p)^{1-k}\!\quad \text{for }k\in\{0,1\}.
+\]
+A Bernoulli random variable has expected value \[
+\mbox{E}(X)=p
+\] and variance \[
+\mbox{Var}(X)=p(1-p)
+\]
+\end{frame}
+
+\begin{frame}\frametitle{Bernoulli, \textcolor{red}{Binomial}, Beta}
+The Binomial distribution models the number of successes (nonzero outcomes)
+in $n$ independent Bernoulli trials with parameters $n\in \mathbb{N}$
+and $p \in [0,1]$:\[
+\Pr(X = k) = {n\choose k}p^k(1-p)^{n-k}\!\quad \text{for }k\in\{0,\ldots,n\}.
+\]
+
+The Bernoulli distribution can be expressed as a special case of
+the Binomial when $n=1$:\[
+\Pr(X=k) = p^k (1-p)^{1-k}\!\quad \text{for }k\in\{0,1\}.
+\]
+
+A Binomial random variable is the sum of $n$ independent 0/1 Bernoulli
+random variables, so it has $n$ times the expected value and the
+variance: \[
+\mbox{E}(X)=np
+\] and variance \[
+\mbox{Var}(X)=np(1-p)
+\]
+\end{frame}
+
+\begin{frame}\frametitle{Bernoulli, Binomial, \textcolor{red}{Beta}}
+The Beta distribution is a continuous probability distribution defined
+on the interval $[0,1]$ with parameters $\alpha > 0$ and $\beta >
+0$:\[
+f(x;\alpha,\beta) = \frac{1}{\mbox{B}(\alpha,\beta)}\,
+x^{\alpha-1}(1-x)^{\beta-1}
+\]\[
+E(X) = \frac{\alpha}{\alpha+\beta}\!\quad
+\mbox{Mode\footnote{
+Mode only exists if $\alpha,\beta>1$.
+}}(X) = \frac{\alpha-1}{\alpha+\beta-2}
+\]
+The normalization constant $\mbox{B}(\alpha,\beta)$ is known as the
+Beta function:\[
+\mbox{B}(\alpha,\beta) = \int_0^1 x^{\alpha-1}(1-x)^{\beta-1} dx = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}
+\]
+$\Gamma(\alpha)$ is known as the Gamma function and is a continuous extension of
+the factorial function:\[
+\Gamma(n) = (n-1)!
+\]
+\end{frame}
+
+\begin{frame}\frametitle{Bernoulli, Binomial, Beta}
+The Beta distribution is the {\em conjugate prior distribution} for the
+Binomial distribution (i.e. when used as a prior distribution for the
+$p$ parameter, the posterior for $p$ also has a Beta distribution).
+\begin{itemize}
+\item Parameter $p$ picked from a Beta distribution (prior):\[
+f(p) \propto p^{\alpha-1}(1-p)^{\beta-1}
+\]
+\item Observe $k$ successes in $n$ independent Bernoulli trials (likelihood):\[
+\mathcal{L}(p|k) = \Pr(k|p) \propto p^k(1-p)^{n-k}
+\]
+\item Update your belief about the value of $p$ (posterior):\[
+f(p|k) = \frac{\Pr(k|p) f(p)}{\int_0^1\Pr(k|q)f(q)dq} \propto p^{k+\alpha-1}(1-p)^{n-k+\beta-1}
+\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Laplace - Rule of Succession}
+The 18th century mathematician Pierre-Simon Laplace considered the
+problem \begin{quote}
+``What is the probability that the sun will rise tomorrow?''
+\end{quote}
+More generally if we observe $k$ successes out of $n$ independent
+Bernoulli trials, what is the probability that the next trial will
+succeed?
+\end{frame}
+
+\begin{frame}\frametitle{Laplace - Rule of Succession}
+\begin{itemize}
+\item Let us assume an uninformative prior for $p$ (a Beta
+  distribution with $\alpha=\beta=1$):
+$f(p) = 1 \!\quad \text{for }p\in\{0,1\}$
+\item This will give us a posterior proportional to likelihood: \[
+f(p|k) = \frac{p^k(1-p)^{n-k}}{\mbox{B}(k+1,n-k+1)}
+\]
+\item To predict what is going to happen next, we should consider all
+  possible $p$ values (predictive distribution): \begin{eqnarray*}
+\Pr(\mbox{success}|k) &=& \int_0^1 \Pr(\mbox{success}|p,k) f(p|k) dp \\
+&=& \int_0^1 p\, f(p|k) dp = E_{p|k}(p)\\
+&=& \frac{\int_0^1 p^{k+1}(1-p)^{n-k} dp}{\mbox{B}(k+1,n-k+1)} \\
+&=& \frac{\mbox{B}(k+2,n-k+1)}{\mbox{B}(k+1,n-k+1)} = \frac{k+1}{n+2}\\
+\end{eqnarray*}
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Categorical, Multinomial, Dirichlet}
+Generalize from 2 possible outcomes to $K$ possible outcomes:
+\begin{itemize}
+\item Bernoulli $\rightarrow$ Categorical distribution\footnote{
+  alternatively $f(x|\mathbf{p})=\prod_{k=1}^K p_k^{[x=k]}$ or
+  $f(\mathbf{x}|\mathbf{p})=\prod_{k=1}^K p_k^{x_k}$} 
+\\(single trial, observed value $\in \{1,\dots, K\}$): \[ 
+\Pr(X=k| \mathbf{p} ) = p_k\!\quad \text{for }k\in\{1,\ldots,K\}
+\]
+
+\item Binomial $\rightarrow$ Multinomial distribution\footnote{
+$k\in\{1,\dots,K\}, x_k\in\{0,\dots,n\}, \sum x_k=n, p_k\in[0,1], \sum
+  p_k = 1$.
+}
+\\($n$ trials, $x_k$ is the count of observing k):\[
+\Pr(X_1 = x_1, \dots, X_k = x_k) = 
+\frac{n!}{x_1!\cdots x_k!}\,p_1^{x_1}\cdots p_k^{x_k}
+\]
+
+\item Beta $\rightarrow$ Dirichlet distribution\footnote{$
+\alpha_k>0, p_k\in[0,1], \sum p_k=1, 
+\mbox{B}(\boldsymbol{\alpha}) = 
+\left(\prod \Gamma(\alpha_k)\right)/\Gamma\left(\sum \alpha_k\right)
+$}
+(conjugate prior for $\mathbf{p}$):\[
+f(\mathbf{p};\boldsymbol{\alpha}) = \frac{1}{\mbox{B}(\boldsymbol{\alpha})}\,
+\prod_{k=1}^K p_k^{\alpha_k-1}
+\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Categorical, Multinomial, Dirichlet}
+Some properties of the Dirichlet distribution:
+\begin{itemize}
+\item Define $\alpha = \sum \alpha_k$ and $m_k = \alpha_k / \alpha$.
+  The vector $\mathbf{m}$ gives the mean and $\alpha$ measures
+  sharpness (large $\alpha$ means distribution sharply peaked around
+  $\mathbf{m}$): \[ f(\mathbf{p};\alpha \mathbf{m}) =
+  \frac{1}{\mbox{B}(\alpha \mathbf{m})}\, \prod_{k=1}^K p_k^{\alpha
+    m_k-1}
+\]
+\item Expectation: $E(p_k) = \frac{\alpha_k}{\alpha}$.
+
+\item Mode: $p_k = \frac{\alpha_k - 1}{\alpha - K}$.
+
+\item Marginals: $p_k \sim \mbox{Beta}(\alpha_k, \alpha - \alpha_k)$.
+
+\item Aggregation: $(p_1,p_2,\ldots,p_i+p_j,\ldots,p_K) \sim 
+\mbox{Dir}(\alpha_1,\alpha_2,\ldots,\alpha_i+\alpha_j,\ldots,\alpha_K)$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Derivation of Additive (Laplace) Smoothing}
+\begin{itemize}
+\item Let us assume a symmetric Dirichlet prior for $\mathbf{p}$ with
+  $\alpha_k = \alpha$:\[
+f(\mathbf{p}) = \frac{1}{\mbox{B}(\boldsymbol{\alpha})}\,
+\prod_{k=1}^K p_k^{\alpha-1}
+\]
+
+\item This will give us the following posterior: \[
+f(\mathbf{p}|\mathbf{x}) \propto \prod p_k^{x_k + \alpha - 1}
+\]
+
+\item The mean of the posterior gives additive smoothing:\[
+E(p_k) = \frac{x_k + \alpha}{\sum x_k + K\alpha}
+\]
+
+\item Is this the same as using the predictive distribution?
+
+\item Why does it not work very well?
+\end{itemize}
+\end{frame}
+
+%% \begin{frame}\frametitle{MacKay-Peto and Jelinek-Mercer}
+
+%% \end{frame}
+
+%% \begin{frame}\frametitle{Dirichlet Process, Pitman-Yor Processes}
+
+%% \end{frame}
+
+%% \begin{frame}\frametitle{Teh and Kneser-Ney}
+
+%% \end{frame}
+
+\end{document}
