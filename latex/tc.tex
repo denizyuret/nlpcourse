@@ -6,6 +6,7 @@
 \newcommand{\pml}{p_{\textsc{ml}}}
 \DeclareMathOperator*{\argmax}{argmax}
 \newcommand{\score}{\mathit{score}}
+\newcommand{\loss}{\mathit{loss}}
 
 \title{Learning to map strings to classes}
 \subtitle{Comp 542 Natural Language Processing}
@@ -313,10 +314,31 @@ $g_j$ involving a competing $y'$, $w_j\rightarrow-\infty$.
 \mbox{ and } P(Q|D,\mathcal{H}) &\propto& P(D|Q,\mathcal{H}) P(Q|\mathcal{H})
 \end{eqnarray*}
 \end{itemize}
+\footnotesize Note: In generative models $D$ and $D'$ stand for both
+the input $X$ and the output $Y$.  In conditional models they stand
+for the output $Y$ only.  The input $X$ is assumed given ($X$ is on
+the condition (right) side of each probability).
+% expression, next to $\mathcal{H}$).
 \end{frame}
 
-\begin{frame}\frametitle{Conditional log-linear models: MAP} %% LSP 94-97
-
+\begin{frame}\frametitle{Conditional log-linear models: Gaussian MAP} %% LSP 94-97
+Gaussian prior (aka L2 regularization):\begin{eqnarray*}
+p(\mathbf{w}|\mathcal{H}_G) &=& \prod_{j=1}^d \frac{1}{\sigma \sqrt{2\pi}}
+\exp -\frac{w_j^2}{2\sigma^2} \\
+\mathbf{w}_\text{MAP} &=& \argmax_w\, \log p(D|\mathbf{w},\mathcal{H}_G)
++ \log p(\mathbf{w}|\mathcal{H}_G) \\
+&=& \argmax_w\, \ell(\mathbf{w}) -\frac{1}{2\sigma^2}\sum w_j^2 \\
+&=& \argmax_w\, \ell(\mathbf{w}) - \frac{C}{2}\|\mathbf{w}\|_2^2 \quad\text{where }C=\frac{1}{\sigma^2}
+\end{eqnarray*}
+\end{frame}
+\begin{frame}\frametitle{Conditional log-linear models: Laplacian MAP} %% LSP 94-97
+Laplacian prior (aka L1 regularization):\begin{eqnarray*}
+p(\mathbf{w}|\mathcal{H}_L) &=& \prod_{j=1}^d \frac{1}{2b} \exp -\frac{|w_j|}{b}\\
+\mathbf{w}_\text{MAP} &=& \argmax_w\, \log p(D|\mathbf{w},\mathcal{H}_L)
++ \log p(\mathbf{w}|\mathcal{H}_L) \\
+&=& \argmax_w\, \ell(\mathbf{w}) -\frac{1}{b}\sum |w_j| \\
+&=& \argmax_w\, \ell(\mathbf{w}) - C \|\mathbf{w}\|_1 \quad\text{where }C=\frac{1}{b}
+\end{eqnarray*}
 \end{frame}
 
 \begin{frame}\frametitle{Conditional log-linear models: L1 vs. L2} %% Hastie
@@ -331,8 +353,71 @@ pushes many parameters close to zero but does not quite get rid of
 them.
 \end{frame}
 
-\begin{frame}\frametitle{Loss functions} %% LSP 98-100
+\begin{frame}\frametitle{A non-probabilistic view of learning} %% LSP 98-100
+\begin{itemize}
+\item An alternative view of machine learning replaces probabilistic
+inference with the minimization of a {\bf loss function}.  
+\item Let $\mathcal{H}$ denote the set of all possible predictors that
+  map $\mathcal{X}\rightarrow\mathcal{Y}$.  
+\item The loss for $h\in\mathcal{H}: \loss(\mathbf{x}, \mathbf{y}; h)$
+  measures the badness of the predictor $h$ given input $\mathbf{x}$
+  when $\mathbf{y}$ is the correct output.
+\item Given $\mathcal{H}$ and $\loss$, the learning problem becomes:\[
+  \min_{h\in\mathcal{H}} \mathbb{E}[\loss(\mathbf{X}, \mathbf{Y}; h)]
+  + \textit{model-complexity}(h)
+\]
+\item The second term takes the place of the prior and is called the
+  {\bf regularization} term.
+\item When the expected loss is approximated using the sample
+  distribution we have what is called the {\bf empirical risk}:\[
+  \mathbb{E}[\loss(\mathbf{X}, \mathbf{Y}; h)] \approx \frac{1}{N}
+  \sum_{i=1}^N \loss(x_i, y_i; h)
+\]
+\end{itemize}
+\end{frame}
 
+\begin{frame}\frametitle{Probabilistic inference $\equiv$ log loss}
+The probabilistic learning methods we have covered can be restated in
+terms of loss functions.
+\begin{itemize}
+\item Maximizing log likelihood in generative models can be seen as
+  minimizing the {\bf log loss}:\[
+\loss(x, y; h) = -\log p(x, y | h)
+\]
+\item Maximizing log likelihood in conditional models gives another
+  form of {\bf log loss}:\[
+\loss(x, y; h) = -\log p(y | x, h)
+\]
+\end{itemize}
+\end{frame}
+\begin{frame}\frametitle{Potential problems with log loss}
+\begin{eqnarray*}
+\loss(x, y; h) &=& -\log p(x, y | h)\quad\text{or}\\
+\loss(x, y; h) &=& -\log p(y | x, h)
+\end{eqnarray*}
+\begin{itemize}
+\item Even if the model correctly predicts $y_i$ as the most probable
+  output for $x_i$, there is still pressure to diminish the loss
+  function as long as other $y\in\mathcal{Y}$ have non-zero
+  probability.
+\item Not all alternative $y\in\mathcal{Y}$ may be equally bad, some
+  wrong answers may be preferrable to others.  This is not represented
+  in log loss.
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Alternative loss functions}
+\begin{center}
+\includegraphics[height=.5\textheight]{images/bishop-fig-7-5.pdf}
+\end{center}\footnotesize
+{\bf Figure 7.5 (from Bishop, 2006)}: Loss functions for binary
+classification $y\in\{-1,+1\}$.  $z=y\hat{y}$ where $y$ is the correct
+output and $\hat{y}$ is the model output.  $E(z)$ gives the loss (or
+error) for a single instance.  The red curve is equivalent to {\bf
+  log-loss}, the black curve is {\bf 0-1 loss}, the blue curve is {\bf
+  hinge loss} (used by SVM), and the green curve is the {\bf squared
+  error} loss.  Each loss function may imply different optimum
+parameters for a given model.
 \end{frame}
 
 \begin{frame}\frametitle{Perceptron} %% LSP 101-103

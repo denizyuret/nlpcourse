@@ -1,0 +1,72 @@
+COMP 542 PROJECT 2 -- CLASSIFYING MOVIE REVIEWS
+
+Please submit your answers as a text file on the course website.  There
+are a total of 4 problems worth 100 points which should take you around
+3 minutes / point.  The due date is October 27.  Please start early and
+use the class mailing list to clarify your questions.
+
+
+1. CORPORA
+
+Please download the polarity dataset v2.0 from
+
+http://www.cs.cornell.edu/people/pabo/movie-review-data
+
+Read (Pang and Lee, 2002) available from the same page if you have not
+done so already.
+
+[5 points] What is the average number of tokens in positive reviews?
+What is the average number of tokens in negative reviews?  Is there a
+trend?
+
+[5 points] What are the most frequent 20 words used in positive reviews?
+What are the most frequent 20 words used in negative reviews?  Is there
+a pattern?
+
+2. NAIVE BAYES
+
+[30 points] Implement the simple Naive Bayes algorithm discussed in
+class with add-one smoothing in your favorite language.  Include your
+code in the submission.  Evaluate your algorithm by training with 80% of
+the data and testing on the remaining 20%.  Try this with five random
+80-20 train-test splits.  What is the average accuracy?  What is the
+standard deviation?
+
+3. SRILM
+
+[30 points] Naive Bayes can be seen as learning simple unigram language
+models for each class.  In our first project we learned how to build
+more sophisticated language models using SRILM.  For each of the five
+training sets used in the last problem, build a language model for
+positive reviews and another language model for negative reviews.  Use
+trigram models with interpolated Kneser-Ney smoothing, the -unk option,
+and the vocabulary set to all words that appear more than once in the
+whole polarity dataset.  Use the corresponding test sets to evaluate
+this language model based learner.  What is the average accuracy?  What
+is the standard deviation?  Is the difference with Naive Bayes
+statistically significant?
+
+4. LOG-LINEAR
+
+[30 points] Build and evaluate a conditional log-linear model using the
+same five train-test splits.  Use two types of binary features as
+discussed in class: class-only features that are active for a particular
+class, and class-word features that are active for a particular
+class-word pair.  You have three choices of increasing difficulty for
+building the models, pick one:
+
+- Use a package like liblinear, mallet, R, or weka that implements
+  logistic regression (another name for conditional log-linear models
+  with binary output).  You will only need to figure out how to use the
+  package and convert the data to its input format.
+
+http://www.csie.ntu.edu.tw/~cjlin/liblinear
+
+- Write your own log-linear learner based on the class notes but use an
+  external package like libLBFGS for optimization.  (This would be
+  better for understanding the model.)
+
+http://www.chokkan.org/software/liblbfgs
+
+- Implement the whole thing (including optimization) on your own.  (This
+  is probably unnecessarily difficult.)
