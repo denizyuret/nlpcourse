@@ -149,7 +149,6 @@ q_{x_i|y}^* &=& \frac{\mbox{number of words $=x_i$ in class
 \begin{frame}\frametitle{Why conditional models?}
 \includegraphics[width=.5\textwidth]{images/Figure1-27a.pdf}
 \includegraphics[width=.5\textwidth]{images/Figure1-27b.pdf}
-
 \scriptsize Figure 1.27
 (\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}
 {Bishop, 2006}): Example of the class-conditional densities for two
@@ -168,11 +167,9 @@ decision boundary in $x$ that gives the minimum misclassiﬁcation rate.
   \mathbb{R}^d:$ \[
 \mathbf{g}(x, y) = [ g_1(x, y), g_2(x, y), \dots, g_d(x, y) ]^T
 \]
-
 \item Define score as linear combination of feature values: \[
   \score(x, y) = \mathbf{w}^T \mathbf{g}(x, y) = \sum w_i g_i(x, y)
 \]
-
 \item Maximizing score equivalent to maximizing conditional log-linear
   likelihood:
 \begin{eqnarray*}
@@ -183,6 +180,29 @@ decision boundary in $x$ that gives the minimum misclassiﬁcation rate.
     &=& \argmax_{y\in\mathcal{Y}} \mathbf{w}^T \mathbf{g}(x, y)
 \end{eqnarray*}
 \end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Conditional log-linear models: What features?}
+A typical feature set for string classification (inspired by Naive
+Bayes parameters):\begin{itemize}
+\item One binary feature for each class:\[
+g_j(x, y) = 
+\begin{cases}
+1,& \text{if } y=j \\
+0,& \text{otherwise.}
+\end{cases}
+\]
+\item One binary feature for each word-class pair:\[
+g_{ij}(x, y) = 
+\begin{cases}
+1,& \text{if word}_i\in x, y=j \\
+0,& \text{otherwise.}
+\end{cases}
+\]
+\end{itemize}
+Typically each feature should be sensitive to the class (a feature
+that only looks at $x$ would not be useful in modeling $p(y|x)$), and
+possibly some properties of the input string $x$.
 \end{frame}
 
 \begin{frame}\frametitle{Conditional log-linear models: MLE}
@@ -202,53 +222,125 @@ maximum likelihood estimation for weights $\mathbf{w}$: \begin{eqnarray*}
 
 \begin{frame}\frametitle{Conditional log-linear models: Gradient}
 \begin{eqnarray*}
-  \ell(\mathbf{w}) &=& \frac{1}{N} \sum_{i=1}^N \left[ \mathbf{w}^T
-    \mathbf{g}(x_i, y_i) - \log z_w(x_i) \right] \\ \frac{\partial
-    \ell(\mathbf{w})}{\partial w_j} &=& \frac{1}{N} \sum_{i=1}^N
-  \left[ g_j(x_i, y_i) - \frac{\sum_{y'\in\mathcal{Y}} g_j(x_i, y')
-      \exp \mathbf{w}^T \mathbf{g}(x_i, y')}{z_w(x_i)} \right] 
-  \\ &=& \frac{1}{N} \sum_{i=1}^N \left[ g_j(x_i, y_i) -
-    \sum_{y'\in\mathcal{Y}} g_j(x_i, y') p_w(y'|x_i) \right]
-  \\ &=& \frac{1}{N} \sum_{i=1}^N \left[ g_j(x_i, y_i) -
-    \mathbb{E}_{p_\mathbf{w}(Y|X)} g_j(x_i ,Y) \right]
-  \\ &=& \mathbb{E}_{\tilde{p}(X,Y)} g_j(X,Y) -
-  \mathbb{E}_{\tilde{p}(X)p_\mathbf{w}(Y|X)} g_j(X,Y)
+\ell(\mathbf{w}) &=& \frac{1}{N} \sum_{i=1}^N \left[ \mathbf{w}^T
+    \mathbf{g}(x_i, y_i) - \log z_w(x_i) \right] \\
+\frac{\partial \ell(\mathbf{w})}{\partial w_j} &=& \frac{1}{N}
+  \sum_{i=1}^N \left[ g_j(x_i, y_i) - \frac{\sum_{y'\in\mathcal{Y}}
+      g_j(x_i, y') \exp \mathbf{w}^T \mathbf{g}(x_i, y')}{z_w(x_i)}
+    \right] \\
+&=& \frac{1}{N} \sum_{i=1}^N \left[ g_j(x_i, y_i) -
+    \sum_{y'\in\mathcal{Y}} g_j(x_i, y') p_w(y'|x_i) \right] \\
+&=& \frac{1}{N} \sum_{i=1}^N \left[ g_j(x_i, y_i) -
+    \mathbb{E}_{p_\mathbf{w}(Y|X)} g_j(x_i ,Y) \right] \\
+&=& \mathbb{E}_{\tilde{p}(X,Y)} g_j(X,Y) -
+  \mathbb{E}_{p_\mathbf{w}(X,Y)} g_j(X,Y)
 \end{eqnarray*}
+where $p_\mathbf{w}(X,Y) = \tilde{p}(X)p_\mathbf{w}(Y|X)$ and
+$\tilde{p}$ denotes empirical distribution (i.e. data frequency).
+\end{frame}
+
+\begin{frame}\frametitle{Conditional log-linear models: Feature expectations}
+\[
+\mathbb{E}_{\tilde{p}(X,Y)} g_j(X,Y) =
+  \mathbb{E}_{p_\mathbf{w}(X,Y)} g_j(X,Y)\quad \mbox{ at maximum.}
+\]
 \begin{itemize}
 \item The first expectation is over the empirical distribution
   $\tilde{p}$.
 \item The second expectation is over the model distribution $p_w$.
-\item At the maximum the model expectation of each feature is equal to
-  the empirical expectation.
+\item At the $\mathbf{w}$ that maximizes the likelihood, the model
+  expectation of each feature is equal to the empirical expectation.
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Log-linear models under other names}
+\begin{itemize}
+\item \textbf{Maximum entropy models:} When we represent data using a
+  given set of features and ask for the probability distribution with
+  maximum entropy consistent with empiricial feature expectations, the
+  log-linear model gives the unique solution.  (Thus they are also
+  called maximum entropy models.)
+\item \textbf{Logistic regression:} (actually a classification, not a
+  regression technique) is a conditional log-linear model for binary
+  outputs.
+\item \textbf{CRF, MEMM:} Structured conditional log-linear models (to
+  be covered later).
+\item \textbf{Naive Bayes:} gives the maximum likelihood solution to a
+  {\em generative} log-linear model (modeling joint instead of
+  conditional probability as a log-linear function of features)
+  i.e. $p_w(x,y) = \frac{1}{z_w}\exp \mathbf{w}^T \mathbf{g}(x, y)$
+  (see
+  \href{http://www.denizyuret.com/2010/11/naive-bayes-is-joint-maximum-entropy.html}{my
+    blog post on this}).
+%% linear svm vs logistic regression with l1/l2 prior, l1/l2 loss?
 \end{itemize}
 \end{frame}
 
 \begin{frame}\frametitle{Conditional log-linear models: Overfitting}
 %% LSP pp.94
-Example from (Smith, 2011): Consider a feature $g_6$ with value 1 on a
+Example from (LSP, pp.94): Consider a feature $g_6$ with value 1 on a
 single training example $(x_9, y_9)$ and 0 for every other $(x, y)$
-pair.
+pair.  The derivative of the log likelihood with respect to $w_6$
+is: \begin{eqnarray*} \frac{\partial \ell(\mathbf{w})}{\partial w_6}
+  &=& \frac{1}{N} \sum_{i=1}^N \left[ g_6(x_i, y_i) -
+    \sum_{y'\in\mathcal{Y}} g_6(x_i, y') p_\mathbf{w}(y'|x_i) \right]
+  \\ &=& \frac{1}{N} \left[g_6(x_9, y_9) - g_6(x_9, y_9)
+    p_\mathbf{w}(y_9|x_9)\right] \\ &=& \frac{1}{N} \left[ 1 -
+    p_\mathbf{w}(y_9|x_9) \right]
+\end{eqnarray*}
+This derivative can only approach 0 if $p_\mathbf{w}(y_9|x_9)$
+approaches 1.\begin{eqnarray*}
+p_\mathbf{w}(y_9|x_9) &=& \frac{\exp \mathbf{w}^T \mathbf{g}(x_9,y_9)}
+{\sum_{y'\in\mathcal{Y}} \exp \mathbf{w}^T \mathbf{g}(x_9,y')} \\
+\end{eqnarray*}
+This can only happen if $w_6\rightarrow\infty$ and for every feature
+$g_j$ involving a competing $y'$, $w_j\rightarrow-\infty$.
 \end{frame}
 
-\begin{frame}\frametitle{Conditional log-linear models: Regularization
-    or MAP}
-
-\end{frame}
-
-\begin{frame}\frametitle{Conditional log-linear models under other
-    names}
+\begin{frame}\frametitle{MAP estimation as a solution to overfitting}
 \begin{itemize}
-\item Maximum entropy models: The parameters that maximize the
-  likelihood of a log-linear model give us a distribution that also
-  maximizes the entropy consistent with feature expectations.
-\item Logistic regression: (actually a classification, not a
-  regression technique) is a conditional log-linear model for binary
-  outputs.
-\item Naive Bayes: is a generative log-linear model (see
-  \href{http://www.denizyuret.com/2010/11/naive-bayes-is-joint-maximum-entropy.html}{my
-    blog post on this}).
-%% linear svm vs logistic regression with l1/l2 prior, l1/l2 loss?
+\item Predictive distribution (what we really want):\begin{eqnarray*}
+  P(D'|D,\mathcal{H}) &=& \int P(D'|Q,\mathcal{H}) P(Q|D,\mathcal{H}) dQ \\
+  \text{where } P(Q|D,\mathcal{H}) &\propto& P(D|Q,\mathcal{H}) P(Q|\mathcal{H})
+\end{eqnarray*}
+\item Maximum likelihood estimate (MLE):\begin{eqnarray*}
+  P(D'|D,\mathcal{H}) &\approx& P(D'|Q_\text{ML}, \mathcal{H}) \\
+\mbox{where } Q_\text{ML} &=& \argmax_Q P(D|Q,\mathcal{H})
+\end{eqnarray*}
+\item Maximum a-posteriori estimate (MAP):\begin{eqnarray*}
+  P(D'|D,\mathcal{H}) &\approx& P(D'|Q_\text{MAP}, \mathcal{H}) \\
+\mbox{where } Q_\text{MAP} &=& \argmax_Q P(Q|D,\mathcal{H}) \\
+\mbox{ and } P(Q|D,\mathcal{H}) &\propto& P(D|Q,\mathcal{H}) P(Q|\mathcal{H})
+\end{eqnarray*}
 \end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Conditional log-linear models: MAP} %% LSP 94-97
+
+\end{frame}
+
+\begin{frame}\frametitle{Conditional log-linear models: L1 vs. L2} %% Hastie
+\includegraphics[width=.9\textwidth]{images/hastie-fig-3-11.png}
+
+\footnotesize Adapted from (Hastie et al. 2011, Fig 3.11): $\beta_1$
+and $\beta_2$ are model parameters, $\hat{\beta}$ is the ML estimate,
+the red ellipses are likelihood contours, and the solid blue shapes
+are the L1 (left) and L2 (right) prior contours.  The L1 prior results
+in a more sparse (with lots of zeros) parameter vector.  The L2 prior
+pushes many parameters close to zero but does not quite get rid of
+them.
+\end{frame}
+
+\begin{frame}\frametitle{Loss functions} %% LSP 98-100
+
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron} %% LSP 101-103
+
+\end{frame}
+
+\begin{frame}\frametitle{SVM} %% LSP 103-104
+
 \end{frame}
 
 \end{document}
