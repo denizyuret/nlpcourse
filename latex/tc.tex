@@ -5,8 +5,10 @@
 \newcommand{\corpus}{\mathcal{C}}
 \newcommand{\pml}{p_{\textsc{ml}}}
 \DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
 \newcommand{\score}{\mathit{score}}
 \newcommand{\loss}{\mathit{loss}}
+\renewcommand{\vec}{\mathbf}
 
 \title{Learning to map strings to classes}
 \subtitle{Comp 542 Natural Language Processing}
@@ -24,8 +26,7 @@
 \begin{itemize}
 \item
   \href{http://en.wikipedia.org/wiki/Document_classification}{Document
-    classification}: Text $\rightarrow$ \{ politics, religion, 
-  sports, $\dots$ \}
+    classification}: Text $\rightarrow$ \{ politics, finance, $\dots$ \}
 \begin{itemize}
 \item See \href{http://www-nlp.stanford.edu/IR-book}{Introduction to
   Information Retrieval} Chapter 13,
@@ -97,6 +98,9 @@ $
 \end{itemize}
 \end{frame}
 
+\section{Generative models}
+\frame{\sectionpage}
+
 \begin{frame}\frametitle{Naive Bayes: Generative Process}
 To generate each (x, y) pair where $x = [x_1, x_2, \dots, x_n]$
 consists of words $x_i$ from a vocabulary $\vocab$ and
@@ -147,10 +151,13 @@ q_{x_i|y}^* &=& \frac{\mbox{number of words $=x_i$ in class
 \end{itemize}
 \end{frame}
 
+\section{Conditional models}
+\frame{\sectionpage}
+
 \begin{frame}\frametitle{Why conditional models?}
 \begin{center}
-\includegraphics[width=.5\textwidth]{images/Figure1-27a.pdf}
-\includegraphics[width=.5\textwidth]{images/Figure1-27b.pdf}
+\includegraphics[width=.5\textwidth]{images/bishop-fig-1-27a.pdf}
+\includegraphics[width=.5\textwidth]{images/bishop-fig-1-27b.pdf}
 \end{center}
 \scriptsize {\bf Figure 1.27}
 (\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}
@@ -165,29 +172,35 @@ decision boundary in $x$ that gives the minimum misclassiﬁcation rate.
 
 \begin{frame}\frametitle{Why conditional models?}
 \begin{itemize}
-\url{https://class.coursera.org/nlp/lecture/131}
-
+\item \url{https://class.coursera.org/nlp/lecture/131}  See the text
+  classification example.
+\item
+  \url{http://www.cs.berkeley.edu/~klein/papers/maxent-tutorial-slides.pdf}
+  See examples on sensors and stoplights.  ``Even with exactly the
+  same features, changing from joint to conditional estimation
+  increases performance.''  (Klein and Manning 2002, WSD using
+  Senseval-1 data)
 \end{itemize}
 \end{frame}
 
 \begin{frame}\frametitle{Conditional log-linear models: Likelihood}
 \begin{itemize}
 \item Represent $(x, y)$ pairs using a feature vector function
-  $\mathbf{g}: \mathcal{X} \times \mathcal{Y} \rightarrow
+  $\vec{g}: \mathcal{X} \times \mathcal{Y} \rightarrow
   \mathbb{R}^d:$ \[
-\mathbf{g}(x, y) = [ g_1(x, y), g_2(x, y), \dots, g_d(x, y) ]^T
+\vec{g}(x, y) = [ g_1(x, y), g_2(x, y), \dots, g_d(x, y) ]^T
 \]
 \item Define score as linear combination of feature values: \[
-  \score(x, y) = \mathbf{w}^T \mathbf{g}(x, y) = \sum w_i g_i(x, y)
+  \score(x, y) = \vec{w}^T \vec{g}(x, y) = \sum w_i g_i(x, y)
 \]
 \item Maximizing score equivalent to maximizing conditional log-linear
   likelihood:
 \begin{eqnarray*}
-  p_w(y|x) &=& \frac{1}{z_w(x)}\exp \mathbf{w}^T \mathbf{g}(x, y) \\
-  z_w(x) &=& \sum_{y'\in\mathcal{Y}} \exp \mathbf{w}^T \mathbf{g}(x, y') \\
+  p_w(y|x) &=& \frac{1}{z_w(x)}\exp \vec{w}^T \vec{g}(x, y) \\
+  z_w(x) &=& \sum_{y'\in\mathcal{Y}} \exp \vec{w}^T \vec{g}(x, y') \\
   \argmax_{y\in\mathcal{Y}} p_w(y|x)
-    &=& \argmax_{y\in\mathcal{Y}} \exp \mathbf{w}^T \mathbf{g}(x, y) \\
-    &=& \argmax_{y\in\mathcal{Y}} \mathbf{w}^T \mathbf{g}(x, y)
+    &=& \argmax_{y\in\mathcal{Y}} \exp \vec{w}^T \vec{g}(x, y) \\
+    &=& \argmax_{y\in\mathcal{Y}} \vec{w}^T \vec{g}(x, y)
 \end{eqnarray*}
 \end{itemize}
 \end{frame}
@@ -217,10 +230,10 @@ possibly some properties of the input string $x$.
 
 \begin{frame}\frametitle{Conditional log-linear models: MLE}
 Given training data $\{(x_1, y_1), (x_2, y_2), \dots \}$, the
-maximum likelihood estimation for weights $\mathbf{w}$: \begin{eqnarray*}
-\mathbf{w^*} &=& \argmax_\mathbf{w} \prod p_\mathbf{w}(y_i | x_i) \\
-&=& \argmax_\mathbf{w} \sum \log p_\mathbf{w}(y_i | x_i) \\
-&=& \argmax_\mathbf{w} \sum \mathbf{w}^T \mathbf{g}(x_i, y_i) - \log z_w(x_i)
+maximum likelihood estimation for weights $\vec{w}$: \begin{eqnarray*}
+\vec{w^*} &=& \argmax_\vec{w} \prod p_\vec{w}(y_i | x_i) \\
+&=& \argmax_\vec{w} \sum \log p_\vec{w}(y_i | x_i) \\
+&=& \argmax_\vec{w} \sum \vec{w}^T \vec{g}(x_i, y_i) - \log z_w(x_i)
 \end{eqnarray*}
 \begin{itemize}
 \item There is no closed form solution.
@@ -232,35 +245,56 @@ maximum likelihood estimation for weights $\mathbf{w}$: \begin{eqnarray*}
 
 \begin{frame}\frametitle{Conditional log-linear models: Gradient}
 \begin{eqnarray*}
-\ell(\mathbf{w}) &=& \frac{1}{N} \sum_{i=1}^N \left[ \mathbf{w}^T
-    \mathbf{g}(x_i, y_i) - \log z_w(x_i) \right] \\
-\frac{\partial \ell(\mathbf{w})}{\partial w_j} &=& \frac{1}{N}
+\ell(\vec{w}) &=& \frac{1}{N} \sum_{i=1}^N \left[ \vec{w}^T
+    \vec{g}(x_i, y_i) - \log z_w(x_i) \right] \\
+\frac{\partial \ell(\vec{w})}{\partial w_j} &=& \frac{1}{N}
   \sum_{i=1}^N \left[ g_j(x_i, y_i) - \frac{\sum_{y'\in\mathcal{Y}}
-      g_j(x_i, y') \exp \mathbf{w}^T \mathbf{g}(x_i, y')}{z_w(x_i)}
+      g_j(x_i, y') \exp \vec{w}^T \vec{g}(x_i, y')}{z_w(x_i)}
     \right] \\
 &=& \frac{1}{N} \sum_{i=1}^N \left[ g_j(x_i, y_i) -
     \sum_{y'\in\mathcal{Y}} g_j(x_i, y') p_w(y'|x_i) \right] \\
 &=& \frac{1}{N} \sum_{i=1}^N \left[ g_j(x_i, y_i) -
-    \mathbb{E}_{p_\mathbf{w}(Y|X)} g_j(x_i ,Y) \right] \\
+    \mathbb{E}_{p_\vec{w}(Y|X)} g_j(x_i ,Y) \right] \\
 &=& \mathbb{E}_{\tilde{p}(X,Y)} g_j(X,Y) -
-  \mathbb{E}_{p_\mathbf{w}(X,Y)} g_j(X,Y)
+  \mathbb{E}_{p_\vec{w}(X,Y)} g_j(X,Y)
 \end{eqnarray*}
-where $p_\mathbf{w}(X,Y) = \tilde{p}(X)p_\mathbf{w}(Y|X)$ and
+where $p_\vec{w}(X,Y) = \tilde{p}(X)p_\vec{w}(Y|X)$ and
 $\tilde{p}$ denotes empirical distribution (i.e. data frequency).
 \end{frame}
 
 \begin{frame}\frametitle{Conditional log-linear models: Feature expectations}
 \[
 \mathbb{E}_{\tilde{p}(X,Y)} g_j(X,Y) =
-  \mathbb{E}_{p_\mathbf{w}(X,Y)} g_j(X,Y)\quad \mbox{ at maximum.}
+  \mathbb{E}_{p_\vec{w}(X,Y)} g_j(X,Y)\quad \mbox{ at maximum.}
 \]
 \begin{itemize}
 \item The first expectation is over the empirical distribution
   $\tilde{p}$.
 \item The second expectation is over the model distribution $p_w$.
-\item At the $\mathbf{w}$ that maximizes the likelihood, the model
+\item At the $\vec{w}$ that maximizes the likelihood, the model
   expectation of each feature is equal to the empirical expectation.
 \end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Conditional log-linear models: The binary case}
+\begin{itemize}
+\item General conditional log-linear model:\[
+  p_w(y|x) = \frac{\exp \vec{w}^T \vec{g}(x, y)}
+  {\sum_{y'\in\mathcal{Y}} \exp \vec{w}^T \vec{g}(x, y')}
+\]
+\item With binary outputs $y\in\{+1,-1\}$:\[
+  p_w(Y=+1|x) = \frac{\exp \vec{w}^T \vec{g}(x, +1)}
+  {\exp \vec{w}^T \vec{g}(x, +1)+\exp \vec{w}^T \vec{g}(x, -1)}
+\]
+\item Define $\vec{g}(\vec{x}, +1) = \vec{x}$ and $\vec{g}(\vec{x}, -1) = \vec{0}$:\[
+  p_w(Y=+1|x) =
+  \frac{\exp \vec{w}^T \vec{x}}
+       {\exp \vec{w}^T \vec{x}+1} =
+  \frac{1}{1+\exp(-\vec{w}^T \vec{x})}
+\]
+\item This model is known as {\bf logistic regression}.
+\item When is the most probable output +1?
+\end{itemize}  
 \end{frame}
 
 \begin{frame}\frametitle{Log-linear models under other names}
@@ -278,7 +312,7 @@ $\tilde{p}$ denotes empirical distribution (i.e. data frequency).
 \item \textbf{Naive Bayes:} gives the maximum likelihood solution to a
   {\em generative} log-linear model (modeling joint instead of
   conditional probability as a log-linear function of features)
-  i.e. $p_w(x,y) = \frac{1}{z_w}\exp \mathbf{w}^T \mathbf{g}(x, y)$
+  i.e. $p_w(x,y) = \frac{1}{z_w}\exp \vec{w}^T \vec{g}(x, y)$
   (see
   \href{http://www.denizyuret.com/2010/11/naive-bayes-is-joint-maximum-entropy.html}{my
     blog post on this}).
@@ -291,17 +325,17 @@ $\tilde{p}$ denotes empirical distribution (i.e. data frequency).
 Example from (LSP, pp.94): Consider a feature $g_6$ with value 1 on a
 single training example $(x_9, y_9)$ and 0 for every other $(x, y)$
 pair.  The derivative of the log likelihood with respect to $w_6$
-is: \begin{eqnarray*} \frac{\partial \ell(\mathbf{w})}{\partial w_6}
+is: \begin{eqnarray*} \frac{\partial \ell(\vec{w})}{\partial w_6}
   &=& \frac{1}{N} \sum_{i=1}^N \left[ g_6(x_i, y_i) -
-    \sum_{y'\in\mathcal{Y}} g_6(x_i, y') p_\mathbf{w}(y'|x_i) \right]
+    \sum_{y'\in\mathcal{Y}} g_6(x_i, y') p_\vec{w}(y'|x_i) \right]
   \\ &=& \frac{1}{N} \left[g_6(x_9, y_9) - g_6(x_9, y_9)
-    p_\mathbf{w}(y_9|x_9)\right] \\ &=& \frac{1}{N} \left[ 1 -
-    p_\mathbf{w}(y_9|x_9) \right]
+    p_\vec{w}(y_9|x_9)\right] \\ &=& \frac{1}{N} \left[ 1 -
+    p_\vec{w}(y_9|x_9) \right]
 \end{eqnarray*}
-This derivative can only approach 0 if $p_\mathbf{w}(y_9|x_9)$
+This derivative can only approach 0 if $p_\vec{w}(y_9|x_9)$
 approaches 1.\begin{eqnarray*}
-p_\mathbf{w}(y_9|x_9) &=& \frac{\exp \mathbf{w}^T \mathbf{g}(x_9,y_9)}
-{\sum_{y'\in\mathcal{Y}} \exp \mathbf{w}^T \mathbf{g}(x_9,y')} \\
+p_\vec{w}(y_9|x_9) &=& \frac{\exp \vec{w}^T \vec{g}(x_9,y_9)}
+{\sum_{y'\in\mathcal{Y}} \exp \vec{w}^T \vec{g}(x_9,y')} \\
 \end{eqnarray*}
 This can only happen if $w_6\rightarrow\infty$ and for every feature
 $g_j$ involving a competing $y'$, $w_j\rightarrow-\infty$.
@@ -332,60 +366,70 @@ the condition (right) side of each probability).
 
 \begin{frame}\frametitle{Conditional log-linear models: Gaussian MAP} %% LSP 94-97
 Gaussian prior (aka L2 regularization):\begin{eqnarray*}
-p(\mathbf{w}|\mathcal{H}_G) &=& \prod_{j=1}^d \frac{1}{\sigma \sqrt{2\pi}}
+p(\vec{w}|\mathcal{H}_G) &=& \prod_{j=1}^d \frac{1}{\sigma \sqrt{2\pi}}
 \exp -\frac{w_j^2}{2\sigma^2} \\
-\mathbf{w}_\text{MAP} &=& \argmax_w\, \log p(D|\mathbf{w},\mathcal{H}_G)
-+ \log p(\mathbf{w}|\mathcal{H}_G) \\
-&=& \argmax_w\, \ell(\mathbf{w}) -\frac{1}{2\sigma^2}\sum w_j^2 \\
-&=& \argmax_w\, \ell(\mathbf{w}) - \frac{C}{2}\|\mathbf{w}\|_2^2 \quad\text{where }C=\frac{1}{\sigma^2}
+\vec{w}_\text{MAP} &=& \argmax_w\, \log p(D|\vec{w},\mathcal{H}_G)
++ \log p(\vec{w}|\mathcal{H}_G) \\
+&=& \argmax_w\, \ell(\vec{w}) -\frac{1}{2\sigma^2}\sum w_j^2 \\
+&=& \argmax_w\, \ell(\vec{w}) - \frac{C}{2}\|\vec{w}\|_2^2 \quad\text{where }C=\frac{1}{\sigma^2}
 \end{eqnarray*}
 \end{frame}
 \begin{frame}\frametitle{Conditional log-linear models: Laplacian MAP} %% LSP 94-97
 Laplacian prior (aka L1 regularization):\begin{eqnarray*}
-p(\mathbf{w}|\mathcal{H}_L) &=& \prod_{j=1}^d \frac{1}{2b} \exp -\frac{|w_j|}{b}\\
-\mathbf{w}_\text{MAP} &=& \argmax_w\, \log p(D|\mathbf{w},\mathcal{H}_L)
-+ \log p(\mathbf{w}|\mathcal{H}_L) \\
-&=& \argmax_w\, \ell(\mathbf{w}) -\frac{1}{b}\sum |w_j| \\
-&=& \argmax_w\, \ell(\mathbf{w}) - C \|\mathbf{w}\|_1 \quad\text{where }C=\frac{1}{b}
+p(\vec{w}|\mathcal{H}_L) &=& \prod_{j=1}^d \frac{1}{2b} \exp -\frac{|w_j|}{b}\\
+\vec{w}_\text{MAP} &=& \argmax_w\, \log p(D|\vec{w},\mathcal{H}_L)
++ \log p(\vec{w}|\mathcal{H}_L) \\
+&=& \argmax_w\, \ell(\vec{w}) -\frac{1}{b}\sum |w_j| \\
+&=& \argmax_w\, \ell(\vec{w}) - C \|\vec{w}\|_1 \quad\text{where }C=\frac{1}{b}
 \end{eqnarray*}
 \end{frame}
 
 \begin{frame}\frametitle{Conditional log-linear models: L1 vs. L2} %% Hastie
 \includegraphics[width=.9\textwidth]{images/hastie-fig-3-11.png}
 
-\footnotesize Adapted from (Hastie et al. 2011, Fig 3.11): $\beta_1$
-and $\beta_2$ are model parameters, $\hat{\beta}$ is the ML estimate,
-the red ellipses are likelihood contours, and the solid blue shapes
-are the L1 (left) and L2 (right) prior contours.  The L1 prior results
-in a more sparse (with lots of zeros) parameter vector.  The L2 prior
-pushes many parameters close to zero but does not quite get rid of
-them.
+\footnotesize {\bf Figure 3.11}
+(\href{http://www-stat.stanford.edu/~tibs/ElemStatLearn}{Hastie et
+  al. 2009}): $\beta_1$ and $\beta_2$ are model parameters,
+$\hat{\beta}$ is the ML estimate, the red ellipses are likelihood
+contours, and the solid blue shapes are the L1 (left) and L2 (right)
+prior contours.  The L1 prior results in a more {\bf sparse} (with
+lots of zeros) parameter vector.  The L2 prior pushes many parameters
+close to zero but does not quite get rid of them.
 \end{frame}
+
+\section{Non-probabilistic models}
+\frame{\sectionpage}
 
 \begin{frame}\frametitle{A non-probabilistic view of learning} %% LSP 98-100
 \begin{itemize}
 \item An alternative view of machine learning replaces probabilistic
-inference with the minimization of a {\bf loss function}.  
+  inference with the minimization of a {\bf loss
+    function}\footnote{There is quite a bit of confusing terminology
+    in the literature: the loss is also referred to as the cost,
+    error, or regret and its negative as reward, utility, or the
+    objective function.}.
 \item Let $\mathcal{H}$ denote the set of all possible predictors that
-  map $\mathcal{X}\rightarrow\mathcal{Y}$.  
-\item The loss for $h\in\mathcal{H}: \loss(\mathbf{x}, \mathbf{y}; h)$
-  measures the badness of the predictor $h$ given input $\mathbf{x}$
-  when $\mathbf{y}$ is the correct output.
+  map $\mathcal{X}\rightarrow\mathcal{Y}$.  The loss for
+  $h\in\mathcal{H}$ is a measurement of the badness of the predictor
+  $h$ given input $x$ when $y$ is the correct output:
+  \[ \loss(x, y; h) \in \mathcal{X} \times \mathcal{Y}
+  \times (\mathcal{X}\rightarrow\mathcal{Y}) \rightarrow \mathbb{R}
+\]
 \item Given $\mathcal{H}$ and $\loss$, the learning problem becomes:\[
-  \min_{h\in\mathcal{H}} \mathbb{E}[\loss(\mathbf{X}, \mathbf{Y}; h)]
-  + \textit{model-complexity}(h)
+  \argmin_{h\in\mathcal{H}} \mathbb{E}[\loss(X, Y; h)] +
+  \textit{model-complexity}(h)
 \]
-\item The second term takes the place of the prior and is called the
-  {\bf regularization} term.
-\item When the expected loss is approximated using the sample
-  distribution we have what is called the {\bf empirical risk}:\[
-  \mathbb{E}[\loss(\mathbf{X}, \mathbf{Y}; h)] \approx \frac{1}{N}
-  \sum_{i=1}^N \loss(x_i, y_i; h)
-\]
+\item The first term (expected loss) is known as the {\bf
+  risk}\footnote{The risk is typically estimated using training data
+  in which case it is known as the {\bf empirical risk}:
+  $\mathbb{E}[\loss(X, Y; h)] \approx \frac{1}{N} \sum_{i=1}^N
+  \loss(x_i, y_i; h)$ }, and the second term is called the {\bf
+  regularization} term\footnote{The regularization term serves the
+  same function as the prior in MAP.}.
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Probabilistic inference $\equiv$ log loss}
+\begin{frame}\frametitle{Probabilistic inference $\rightarrow$ log loss}
 The probabilistic learning methods we have covered can be restated in
 terms of loss functions.
 \begin{itemize}
@@ -399,6 +443,18 @@ terms of loss functions.
 \]
 \end{itemize}
 \end{frame}
+
+\begin{frame}\frametitle{MAP prior $\rightarrow$ regularization term}
+\begin{itemize}
+\item Gaussian prior is equivalent to L2 regularization: \[
+  \argmin_\vec{w}\, \frac{1}{N} \sum_{i=1}^N -\log p(y_i|x_i,\vec{w}) + \frac{C}{2}\|\vec{w}\|_2^2
+\]
+\item Laplacian prior is equivalent to L1 regularization: \[
+  \argmin_\vec{w}\, \frac{1}{N} \sum_{i=1}^N -\log p(y_i|x_i,\vec{w}) + C \|\vec{w}\|_1
+\]
+\end{itemize}
+\end{frame}
+
 \begin{frame}\frametitle{Potential problems with log loss}
 \begin{eqnarray*}
 \loss(x, y; h) &=& -\log p(x, y | h)\quad\text{or}\\
@@ -419,21 +475,263 @@ terms of loss functions.
 \begin{center}
 \includegraphics[height=.5\textheight]{images/bishop-fig-7-5.pdf}
 \end{center}\footnotesize
-{\bf Figure 7.5 (from Bishop, 2006)}: Loss functions for binary
-classification $y\in\{-1,+1\}$.  $z=y\hat{y}$ where $y$ is the correct
-output and $\hat{y}$ is the model output.  $E(z)$ gives the loss (or
-error) for a single instance.  The red curve is equivalent to {\bf
-  log-loss}, the black curve is {\bf 0-1 loss}, the blue curve is {\bf
-  hinge loss} (used by SVM), and the green curve is the {\bf squared
-  error} loss.  Each loss function may imply different optimum
-parameters for a given model.
+{\bf Figure 7.5}
+(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}
+{Bishop, 2006}): Loss functions for binary classification $y=\pm 1$.
+$z=yy'$ where $y$ is the correct output and $y'$ is the model output.
+$E(z)$ gives the loss (or error) for a single instance.  The red curve
+is equivalent to {\bf log-loss}
+($\propto\log(1+\exp(-\vec{w}^T\vec{x}))$), the black curve is {\bf
+  0-1 loss}, the blue curve is {\bf hinge loss} (used by SVM), and the
+green curve is the {\bf squared error} loss (used in regression).
+Each loss function may imply different optimum parameters for a given
+model.
 \end{frame}
 
-\begin{frame}\frametitle{Perceptron} %% LSP 101-103
-
+\begin{frame}\frametitle{Gradient descent}
+\begin{itemize}
+\item We typically represent predictor $h$ in terms of some parameters
+  $\vec{w}$ and search for $\vec{w}$ that minimize empirical
+  risk: \[ 
+  \argmin_\vec{w} \sum_{i=1}^N \loss(x_i, y_i; \vec{w})
+  \]
+\item {\bf Gradient descent} can be used when no closed form solution
+  is available (beware of local minima): \[ \vec{w} \leftarrow
+  \vec{w} - \alpha \sum_{i=1}^N \nabla \loss(x_i, y_i; \vec{w})
+\]
+\item {\bf Stochastic gradient descent} approximates the true gradient
+  of the loss by a gradient at a single example: \[ \vec{w}
+  \leftarrow \vec{w} - \alpha\, \nabla \loss(x_i, y_i; \vec{w})
+\]
+\end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{SVM} %% LSP 103-104
+\begin{frame}\frametitle{Perceptron Algorithm (Rosenblatt 1957,
+    Collins 2002)} %% LSP 101-103
+Initialize $\vec{w} \leftarrow \vec{0}$\\
+For pass $t=1\dots T$, example $i=1\dots N$:\\
+\begin{itemize}
+\item $y' \leftarrow \argmax_{y\in\mathcal{Y}}
+    \vec{w}^T\vec{g}(x_i, y)$
+\item $\vec{w} \leftarrow \vec{w} 
++\vec{g}(x_i,y_i)
+-\vec{g}(x_i,y')$ \\
+\small (No update if $y'=y_i$.)
+\end{itemize}
+\vspace{5mm}
+{\bf Perceptron convergence theorem:} This algorithm will find
+$\vec{w}$ with zero error on training set if one exists!
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron Algorithm: convergence theorem}
+A training set $\{(x_1,y_1),\dots,(x_N,y_N)\}$ with diameter $R$ is
+separable with margin $\delta$ if there is a $\vec{w}_*$ with
+$\|\vec{w}_*\|=1$ such that: \begin{eqnarray*}
+  \vec{w}_*^T\vec{g}(\vec{x}_i,y_i) - \vec{w}_*^T\vec{g}(\vec{x}_i,y'_i)
+  &>& \delta \quad\text{and}\\ \|\vec{g}(\vec{x}_i, y_i) -
+  \vec{g}(\vec{x}_i, y'_i)\| &<& R
+\end{eqnarray*}
+for all $i \in \{1,\dots,N\}$ and $y'_i \in \bar{\mathcal{Y}_i}$ where
+$\bar{\mathcal{Y}_i}$ is the set of {\bf incorrect} outputs and $y_i$
+is the correct output for $\vec{x}_i$.  In such a training set, the
+number of mistakes $K$ made by the perceptron algorithm is bounded
+by: \[ K \leq \frac{R^2}{\delta^2}
+\]
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron Algorithm: convergence proof}
+\small
+\begin{itemize}
+\item Let $\vec{w}_k$ be the weights before the $k$'th mistake.
+  ($\vec{w}_1 = \vec{0}$).
+\item Let $i$ be the example where the $k$'th mistake is made, and
+  $y'_i = \argmax_{y\in\mathcal{Y}} \vec{w}_k^T \vec{g}(\vec{x}_i,y)$
+  the incorrect answer given.
+\item After the update: $\vec{w}_{k+1} = \vec{w}_k + \vec{g}(\vec{x}_i,y_i) -
+  \vec{g}(\vec{x}_i,y'_i)$
+\item Dot product the update with $\vec{w}_*$ to get a lower bound on
+  $\|\vec{w}_{k+1}\|$ :\begin{eqnarray*} 
+\vec{w}_*^T \vec{w}_{k+1} &=& \vec{w}_*^T \vec{w}_k + \vec{w}_*^T
+  \vec{g}(\vec{x}_i,y_i) - \vec{w}_*^T \vec{g}(\vec{x}_i,y'_i) \\
+ &\geq& \vec{w}_*^T \vec{w}_k + \delta \\
+ &\geq& k \delta 
+  \quad\text{because } \vec{w}_1=\vec{0} \\
+\|\vec{w}_{k+1}\| &\geq& k \delta 
+  \quad\text{because } \|\vec{w}_*\|=1
+\end{eqnarray*} 
+\item Square the update to get an upper bound on
+  $\|\vec{w}_{k+1}\|$: \begin{eqnarray*}
+\|\vec{w}_{k+1}\|^2 &=& \|\vec{w}_k\|^2 + \|\vec{g}(\vec{x}_i,y_i) -
+  \vec{g}(\vec{x}_i,y'_i)\|^2 \\
+  && +\, 2 \vec{w}_k^T (\vec{g}(\vec{x}_i,y_i) -
+  \vec{g}(\vec{x}_i,y'_i)) \\
+&\leq& \|\vec{w}_k\|^2 + \|\vec{g}(\vec{x}_i,y_i) -
+  \vec{g}(\vec{x}_i,y'_i)\|^2 \\
+&\leq& \|\vec{w}_k\|^2 + R^2 \leq k R^2
+\end{eqnarray*}
+\item Combining the two inequalities gives: $ k^2 \delta^2 \leq k R^2
+  \Rightarrow k \leq R^2 / \delta^2 $
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron Algorithm: loss function}
+\begin{itemize}
+\item {\bf Perceptron update rule:}
+\[ \vec{w} \leftarrow \vec{w} 
++\vec{g}(x_i,y_i)
+-\vec{g}(x_i,y') 
+\]
+\item {\bf Perceptron criterion (loss function):} This update rule can
+  be interpreted as stochastic gradient descent on the loss function:
+% (a variant of hinge loss with the hinge at origin): 
+\[
+\loss_P(x_i, y_i; \vec{w}) = 
+-\vec{w}^T \vec{g}(x_i,y_i)
++\max_{y'} \vec{w}^T \vec{g}(x_i,y')
+\]
+
+\item Compare this with log-loss from conditional log-linear models: \[
+\loss_L(x_i, y_i; \vec{w}) = 
+-\vec{w}^T \vec{g}(x_i,y_i) 
++\log \sum_{y'} \exp \vec{w}^T \vec{g}(x_i,y') 
+\]
+
+\item Compare the loss in binary case with the ones in Figure 7.5.
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron Algorithm: the binary case}
+\begin{itemize}
+\item The general perceptron decoding rule: \[
+y^* = \argmax_{y\in\mathcal{Y}} \vec{w}^T \vec{g}(\vec{x}, y)
+\]
+\item With binary outputs $y\in\{-1,+1\}$, define $\vec{g}(\vec{x},
+  +1) = \vec{x}$ and $\vec{g}(\vec{x}, -1) = \vec{0}$ this becomes: \[ 
+y^* = \begin{cases}
++1,& \text{if } \vec{w}^T \vec{x} > 0\\
+-1,& \text{otherwise.}
+\end{cases}
+\]
+\item Compare this with the most probable output from logistic regression: \[
+y^* = \begin{cases}
++1,& \text{if } \frac{1}{1+\exp(-\vec{w}^T \vec{x})} > \frac{1}{2} \\
+-1,& \text{otherwise.}
+\end{cases}
+\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron Algorithm: convergence example (binary)}
+\begin{columns}
+\column{.66\textwidth}
+\includegraphics[height=.4\textheight]{images/bishop-fig-4-7a.pdf}
+\includegraphics[height=.4\textheight]{images/bishop-fig-4-7b.pdf}\\ 
+\includegraphics[height=.4\textheight]{images/bishop-fig-4-7c.pdf}
+\includegraphics[height=.4\textheight]{images/bishop-fig-4-7d.pdf}
+\column{.33\textwidth}\footnotesize {\bf Figure 4.7}
+(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}
+       {Bishop 2006}): 
+Illustration of the convergence of the perceptron learning algorithm,
+showing data points from two classes (red and blue) in a
+two-dimensional feature space. The parameter vector w is shown as a
+black arrow together with the corresponding decision boundary (black
+line), in which the arrow points towards the decision region which
+classified as belonging to the red class.
+\end{columns}
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron Algorithm: regularization and margin}
+\begin{center}
+\includegraphics[width=\textwidth]{images/largeMarginPrinciple2.pdf}
+\end{center}\footnotesize
+{\bf Figure 14.11} (\href{http://www.cs.ubc.ca/~murphyk/MLbook}{Murphy
+  2012}): The perceptron algorithm finds an arbitrary separating
+boundary if there is one and stops updating afterwards.  If there is
+no separating boundary it may oscillate between different solutions.
+Different ways of regularizing the perceptron include {\bf voting},
+{\bf averaging}, and {\bf early stopping} (see
+\href{http://aclweb.org/anthology//W/W02/W02-1001.pdf}{Collins 2002}).
+Another alternative is to search for the solution with the {\bf
+  maximum margin} (which leads us to SVMs).
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron Algorithm: geometry and margin (binary)}
+\begin{itemize}
+\item Consider the rule $ y^* = 1 \text{ if } \vec{w}^T
+  \vec{x} > 0$ and -1 otherwise.
+\item The {\bf decision boundary} is the set of all $\vec{x}$ such
+  that $\vec{w}^T \vec{x} = 0$.
+\item $\vec{w}$ is perpendicular to this boundary: if $\vec{x}_a$ and
+  $\vec{x}_b$ are two points that lie on the boundary, the vector
+  connecting them $\vec{x}_b - \vec{x}_a$ will be perpendicular to
+  $\vec{w}$: $\vec{w}(\vec{x}_b - \vec{x}_a) = \vec{w}\vec{x}_b -
+  \vec{w}\vec{x}_a = 0$.
+\item The distance from an arbitrary training point $\vec{x}_i$ to the
+  boundary is the length of the projection of $\vec{x}_i$ on
+  $\vec{w}$ \[
+  \frac{|\vec{w}^T\vec{x}_i|}{\|\vec{w}\|} = \frac{\vec{w}^T\vec{x}_i y_i}{\|\vec{w}\|}
+\]
+(We can get rid of the absolute value for training points
+  remembering $y_i=1$ for $\vec{w}^T\vec{x}_i>0$ and -1 otherwise.)
+\item The {\bf margin} is the distance of the closest point to the
+  boundary:\[
+  \text{margin } = \min_i \frac{\vec{w}^T\vec{x}_i y_i}{\|\vec{w}\|}
+\]
+% \item The figure on the next slide illustrates the geometry, however
+%   beware that a bias term $w_0$ has been made explicit.
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron Algorithm: geometry and margin (binary)}
+\begin{columns}
+\column{.66\textwidth}
+\includegraphics[width=\textwidth]{images/bishop-fig-4-1.pdf}
+\column{.33\textwidth}\footnotesize {\bf Figure 4.1}
+(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}{Bishop 2006}): 
+
+Illustration of the geometry of a linear discriminant function in two
+dimensions. The output is $+1$ if $y(\vec{x})=\vec{w}^T\vec{x}+w_0 > 0$
+and $-1$ otherwise.  The decision surface, shown in red, is
+perpendicular to $\vec{w}$, and its displacement from the origin is
+controlled by the bias parameter $w_0$. Also, the signed orthogonal
+distance of a general point $\vec{x}$ from the decision surface is
+given by $y(\vec{x})/\|w\|$.
+\end{columns}
+\end{frame}
+
+\begin{frame}\frametitle{Support Vector Machines: maximizing margin} %% LSP 103-104
+\begin{itemize}
+\item We would like to find the $\vec{w}$ that maximizes the margin,
+  i.e. the distance of the closest point to the decision boundary: \[
+  \vec{w}_* = \argmax_\vec{w}\left[ \min_i \frac{\vec{w}^T\vec{x}_i
+      y_i}{\|\vec{w}\| \right]}
+\]
+\item Any multiple of $\vec{w}_*$ will have the same decision boundary
+  and margin.  Let us pick the one that makes $\vec{w}^T\vec{x}_i
+  y_i=1$ for the closest point.  This turns the optimization into: \[
+ \vec{w}_* = \argmax_\vec{w} \frac{1}{\|\vec{w}\|}
+%  = \argmin_\vec{w}\frac{1}{2}\|\vec{w}\|^2
+\quad\text{such that } \forall i ,\; \vec{w}^T\vec{x}_i y_i \geq 1
+\]
+\item For mathematical convenience, this is equivalently stated as: \[
+ \vec{w}_* = \argmin_\vec{w}\frac{1}{2}\|\vec{w}\|^2
+\quad\text{such that } \forall i ,\; \vec{w}^T\vec{x}_i y_i \geq 1
+\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Support Vector Machines: multi-class version}
+\begin{itemize}
+\item A multi-class generalization due to (Crammer and Singer,
+  2001): \[
+ \vec{w}_* = \argmin_\vec{w}\frac{1}{2}\|\vec{w}\|^2
+\]
+\[
+\text{such that } \forall i\;, \forall y'_i\in\bar{\mathcal{Y}_i},\; 
+\vec{w}^T\vec{g}(\vec{x}_i, y_i) - \vec{w}^T\vec{g}(\vec{x}_i, y'_i)
+\geq \delta
+\]
+\end{itemize}
 
 \end{frame}
 

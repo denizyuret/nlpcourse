@@ -1,8 +1,10 @@
-*~
-cs224n
 beamer-test
+cs224n
+Bishop
+Murphy
 *.pdf
 .DS_Store
+*~
 
 # LaTeX
 *.acn
