@@ -142,7 +142,14 @@ parameters $Q$?\begin{eqnarray*}
   \\ \textsl{Accuracy on movie reviews:} 0.8125
 \item Independence assumptions (bag-of-words view) too strong.
   \\ \textsl{Possible solution:} Use ngram models for each class.
-  \\ \textsl{Accuracy on movie reviews:} 0.8450
+  \\ \textsl{Accuracy on movie reviews:} 0.8450 
+\item If a word appears once it is more likely to appear again in a
+  document.  Dirichlet compound multinomial (DCM) model
+  (\href{http://www.cs.ubc.ca/~murphyk/MLbook} {Murphy 2012,
+    Sec. 3.5.5};
+  \href{http://eprints.pascal-network.org/archive/00001454/01/dcmnbV10.1.pdf}
+       {Madsen et al. 2005}) takes into account the burstiness of word
+       usage.
 \item Joint distribution $\Pr(x,y)$ may be difficult to learn and
   unnecessary if all we need is $\argmax\Pr(y|x)$.
   \\ \textsl{Possible solution:} Conditional model, learn
@@ -277,24 +284,29 @@ $\tilde{p}$ denotes empirical distribution (i.e. data frequency).
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Conditional log-linear models: The binary case}
+\begin{frame}\frametitle{Conditional log-linear models: Logistic regression}
 \begin{itemize}
 \item General conditional log-linear model:\[
-  p_w(y|x) = \frac{\exp \vec{w}^T \vec{g}(x, y)}
+  p_\vec{w}(y|x) = \frac{\exp \vec{w}^T \vec{g}(x, y)}
   {\sum_{y\in\mathcal{Y}} \exp \vec{w}^T \vec{g}(x, y)}
 \]
-\item With binary outputs $y\in\{+1,-1\}$:\[
-  p_w(Y=+1|x) = \frac{\exp \vec{w}^T \vec{g}(x, +1)}
-  {\exp \vec{w}^T \vec{g}(x, +1)+\exp \vec{w}^T \vec{g}(x, -1)}
+\item Logistic regression is the binary output case: $y\in\{+1,-1\}$ \[
+  p_\vec{w}(y|x) = \frac{\exp \vec{w}^T \vec{g}(x, y)}
+  {\exp \vec{w}^T \vec{g}(x, y)+\exp \vec{w}^T \vec{g}(x, -y)}
 \]
-\item Define $\vec{g}(\vec{x}, +1) = \vec{x}$ and $\vec{g}(\vec{x}, -1) = \vec{0}$:\[
-  p_w(Y=+1|x) =
+\item Define $\vec{g}(\vec{x}, +1) = \vec{x}$ and $\vec{g}(\vec{x},
+  -1) = \vec{0}$:
+\begin{eqnarray*}
+  p_\vec{w}(Y=+1|x) &=&
   \frac{\exp \vec{w}^T \vec{x}}
        {\exp \vec{w}^T \vec{x}+1} =
-  \frac{1}{1+\exp(-\vec{w}^T \vec{x})}
-\]
-\item This model is known as {\bf logistic regression}.
-\item Note that $p_w(Y=+1|x) > 1/2$ iff $\vec{w}^T\vec{x} > 0$.
+  \frac{1}{1+\exp(-\vec{w}^T \vec{x})} \\
+  p_\vec{w}(Y=-1|x) &=&
+  \frac{1}{\exp \vec{w}^T \vec{x}+1} \\
+  p_\vec{w}(y|x) &=& 
+  \frac{1}{1+\exp(-\vec{w}^T \vec{x} y)} \\
+\end{eqnarray*}
+\item Decision rule: $\argmax_y p_\vec{w}(y|x)=+1\Leftrightarrow\vec{w}^T\vec{x} > 0$.
 \end{itemize}  
 \end{frame}
 
@@ -313,7 +325,7 @@ $\tilde{p}$ denotes empirical distribution (i.e. data frequency).
 \item \textbf{Naive Bayes:} gives the maximum likelihood solution to a
   {\em generative} log-linear model (modeling joint instead of
   conditional probability as a log-linear function of features)
-  i.e. $p_w(x,y) = \frac{1}{z_w}\exp \vec{w}^T \vec{g}(x, y)$
+  i.e. $p_\vec{w}(x,y) = \frac{1}{z_\vec{w}}\exp \vec{w}^T \vec{g}(x, y)$
   (see
   \href{http://www.denizyuret.com/2010/11/naive-bayes-is-joint-maximum-entropy.html}{my
     blog post on this}).
@@ -373,19 +385,19 @@ probability).
 Gaussian prior (aka L2 regularization):\begin{eqnarray*}
 p(\vec{w}|\mathcal{H}_G) &=& \prod_{j=1}^d \frac{1}{\sigma \sqrt{2\pi}}
 \exp -\frac{w_j^2}{2\sigma^2} \\
-\vec{w}_\text{MAP} &=& \argmax_w\, \log p(D|\vec{w},\mathcal{H}_G)
+\vec{w}_\text{MAP} &=& \argmax_\vec{w}\, \log p(D|\vec{w},\mathcal{H}_G)
 + \log p(\vec{w}|\mathcal{H}_G) \\
-&=& \argmax_w\, \ell(\vec{w}) -\frac{1}{2\sigma^2}\sum w_j^2 \\
-&=& \argmax_w\, \ell(\vec{w}) - \frac{C}{2}\|\vec{w}\|_2^2 \quad\text{where }C=\frac{1}{\sigma^2}
+&=& \argmax_\vec{w}\, \ell(\vec{w}) -\frac{1}{2\sigma^2}\sum w_j^2 \\
+&=& \argmax_\vec{w}\, \ell(\vec{w}) - \frac{C}{2}\|\vec{w}\|_2^2 \quad\text{where }C=\frac{1}{\sigma^2}
 \end{eqnarray*}
 \end{frame}
 \begin{frame}\frametitle{Conditional log-linear models: Laplacian MAP} %% LSP 94-97
 Laplacian prior (aka L1 regularization):\begin{eqnarray*}
 p(\vec{w}|\mathcal{H}_L) &=& \prod_{j=1}^d \frac{1}{2b} \exp -\frac{|w_j|}{b}\\
-\vec{w}_\text{MAP} &=& \argmax_w\, \log p(D|\vec{w},\mathcal{H}_L)
+\vec{w}_\text{MAP} &=& \argmax_\vec{w}\, \log p(D|\vec{w},\mathcal{H}_L)
 + \log p(\vec{w}|\mathcal{H}_L) \\
-&=& \argmax_w\, \ell(\vec{w}) -\frac{1}{b}\sum |w_j| \\
-&=& \argmax_w\, \ell(\vec{w}) - C \|\vec{w}\|_1 \quad\text{where }C=\frac{1}{b}
+&=& \argmax_\vec{w}\, \ell(\vec{w}) -\frac{1}{b}\sum |w_j| \\
+&=& \argmax_\vec{w}\, \ell(\vec{w}) - C \|\vec{w}\|_1 \quad\text{where }C=\frac{1}{b}
 \end{eqnarray*}
 \end{frame}
 
@@ -446,7 +458,18 @@ terms of loss functions.
   form of {\bf log loss}:\[
 \loss(x, y; h) = -\log p(y | x, h)
 \]
+\item Variants of {\bf log loss} for conditional log-linear models and
+  logistic regression: \begin{eqnarray*}
+\loss_{LL}(\vec{x}_i, y_i; \vec{w}) &=& 
+-\vec{w}^T \vec{g}(\vec{x}_i,y_i) 
++\log \sum_{y\in\mathcal{Y}} \exp \vec{w}^T \vec{g}(\vec{x}_i,y) \\
+\loss_{LR}(\vec{x}_i, y_i; \vec{w}) &=& \log(1 + \exp(-\vec{w}^T\vec{x}_i y_i))
+\end{eqnarray*}
 \end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Logistic regression log-loss as a function of $\vec{w}^T\vec{x}y$}
+\includegraphics[width=\textwidth]{images/log-loss.png}
 \end{frame}
 
 \begin{frame}\frametitle{MAP prior $\rightarrow$ regularization term}
@@ -473,30 +496,19 @@ terms of loss functions.
 \item Not all alternative $y\in\mathcal{Y}$ may be equally bad, some
   wrong answers may be preferrable to others.  This is not represented
   in log loss.
+\item However, see Bayesian decision theory
+  (e.g. \href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}{Bishop
+  2006} Sec. 1.5) to see how to integrate decision criteria with
+  probabilistic inference.  The non-probabilistic models discussed
+  here can be seen as solving both inference and decision stages
+  together.
 \end{itemize}
 \end{frame}
 
 
-\begin{frame}\frametitle{Gradient descent}
-\begin{itemize}
-\item We typically represent predictor $h$ in terms of some parameters
-  $\vec{w}$ and search for $\vec{w}$ that minimize empirical
-  risk: \[ 
-  \argmin_\vec{w} \sum_{i=1}^N \loss(x_i, y_i; \vec{w})
-  \]
-\item {\bf Gradient descent} can be used when no closed form solution
-  is available (beware of local minima): \[ \vec{w} \leftarrow
-  \vec{w} - \alpha \sum_{i=1}^N \nabla \loss(x_i, y_i; \vec{w})
-\]
-\item {\bf Stochastic gradient descent} approximates the true gradient
-  of the loss by a gradient at a single example: \[ \vec{w}
-  \leftarrow \vec{w} - \alpha\, \nabla \loss(x_i, y_i; \vec{w})
-\]
-\end{itemize}
-\end{frame}
-
-\begin{frame}\frametitle{Perceptron Algorithm (Rosenblatt 1957,
-    Collins 2002)} %% LSP 101-103
+\begin{frame}\frametitle{Perceptron Algorithm 
+(\href{http://www2.denizyuret.com/bibtex.php?fn=show&nselect=1&e1=986}{Rosenblatt 1958},
+\href{http://aclweb.org/anthology//W/W02/W02-1001.pdf}{Collins 2002})} %% LSP 101-103
 Initialize $\vec{w} \leftarrow \vec{0}$\\
 For pass $t=1\dots T$, example $i=1\dots N$:\\
 \begin{itemize}
@@ -508,20 +520,138 @@ For pass $t=1\dots T$, example $i=1\dots N$:\\
 \hspace{10mm}
 \small (No update if $\hat{y}_i=y_i$.)
 \end{itemize}
-\vspace{5mm}
-{\bf Perceptron convergence theorem:} This algorithm will find
-$\vec{w}$ with zero error on training set if one exists!
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron Algorithm: example run}
+\begin{columns}
+\column{.66\textwidth}
+\includegraphics[height=.4\textheight]{images/bishop-fig-4-7a.pdf}
+\includegraphics[height=.4\textheight]{images/bishop-fig-4-7b.pdf}\\ 
+\includegraphics[height=.4\textheight]{images/bishop-fig-4-7c.pdf}
+\includegraphics[height=.4\textheight]{images/bishop-fig-4-7d.pdf}
+\column{.33\textwidth}\footnotesize {\bf Figure 4.7}
+(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}
+       {Bishop 2006}): 
+Example run of the perceptron algorithm, showing data points from two
+classes (red (+1) and blue (-1)) in a two-dimensional feature
+space. We take $\vec{g}(\vec{x}, +1) = \vec{x}$ and $\vec{g}(\vec{x},
+-1) = \vec{0}$ for binary outputs.  The parameter vector $\vec{w}$ is
+shown as a black arrow together with the corresponding decision
+boundary (black line), in which the arrow points towards the decision
+region which classified as belonging to the red class.
+\end{columns}
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron Algorithm: loss function}
+\begin{itemize}
+\item {\bf Perceptron update rule:}
+\[ \vec{w} \leftarrow \vec{w} 
++\vec{g}(x_i,y_i)
+-\vec{g}(x_i,\hat{y}_i)
+\]
+\item {\bf Perceptron criterion (loss function):} This update rule can
+  be interpreted as {\bf stochastic gradient descent} (see next slide)
+  on the following loss function:
+% (negative of margin for wrong outputs, 0 for correct ones):
+% (a variant of hinge loss with the hinge at origin): 
+\[
+\loss_P(x_i, y_i; \vec{w}) = 
+-\vec{w}^T \vec{g}(x_i,y_i)
++\max_{y\in\mathcal{Y}} \vec{w}^T \vec{g}(x_i,y)
+\]
+
+\item Compare this with log-loss from conditional log-linear models: \[
+\loss_{LL}(x_i, y_i; \vec{w}) = 
+-\vec{w}^T \vec{g}(x_i,y_i) 
++\log \sum_{y\in\mathcal{Y}} \exp \vec{w}^T \vec{g}(x_i,y) 
+\]
+
+\item Note that log-sum-exp is a smooth approximation to the maximum
+  function.
+% \item Compare the loss in binary case with the ones in Figure 7.5.
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Stochastic gradient descent}
+\begin{itemize}
+\item We typically represent a predictor $h$ in terms of some parameters
+  $\vec{w}$ and search for $\vec{w}$ that minimize empirical
+  risk: \[ 
+  \argmin_\vec{w} \sum_{i=1}^N \loss(x_i, y_i; \vec{w})
+  \]
+\item {\bf Gradient descent} can be used when no closed form solution
+  is available (however, beware of local minima): \[ \vec{w} \leftarrow
+  \vec{w} - \alpha \sum_{i=1}^N \nabla \loss(x_i, y_i; \vec{w})
+\]
+\item {\bf
+  \href{http://en.wikipedia.org/wiki/Stochastic_gradient_descent}
+       {Stochastic gradient descent}} approximates the true gradient 
+  of the loss by a gradient at a single example: \[ \vec{w}
+  \leftarrow \vec{w} - \alpha\, \nabla \loss(x_i, y_i; \vec{w})
+\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron Algorithm: the binary case}
+\begin{itemize}
+\item Consider a problem with binary outputs: $y\in\{-1,+1\}$.
+\item Set $\vec{g}(\vec{x}, +1) = \vec{x}$ and $\vec{g}(\vec{x}, -1) = \vec{0}$.
+\item The perceptron decision rule $\hat{y} =
+  \argmax_{y\in\mathcal{Y}} \vec{w}^T \vec{g}(\vec{x}, y)$ becomes
+  (similar to logistic regression): \[ 
+\hat{y} = \begin{cases}
++1,& \text{if } \vec{w}^T \vec{x} > 0\\
+-1,& \text{otherwise.}
+\end{cases}
+\]
+%% \item Compare this with the most probable output from logistic regression: \[
+%% \hat{y} = \begin{cases}
+%% +1,& \text{if } \frac{1}{1+\exp(-\vec{w}^T \vec{x})} > \frac{1}{2} \\
+%% -1,& \text{otherwise.}
+%% \end{cases}
+%% \]
+\item The update rule $\{\vec{w} \leftarrow \vec{w} 
++\vec{g}(x_i,y_i)
+-\vec{g}(x_i,\hat{y}_i)\}$ becomes: \[
+\vec{w} \leftarrow \vec{w} 
++ \vec{x}_i y_i
+\quad\text{if } \vec{w}^T\vec{x}_i y_i < 0
+\]
+\item $\loss_P(x_i, y_i; \vec{w}) = 
+-\vec{w}^T \vec{g}(x_i,y_i)
++\max_{y\in\mathcal{Y}} \vec{w}^T \vec{g}(x_i,y)$
+becomes: \[
+\loss_P(x_i, y_i; \vec{w}) = \begin{cases}
+-\vec{w}^T\vec{x}_i y_i,& \text{if } \vec{w}^T\vec{x}_i y_i<0 \\
+0,& \text{otherwise.}
+\end{cases}
+\]
+\item Compare this with log-loss from logistic regression: \[
+  \loss_{LR}(x_i, y_i; \vec{w}) = \log(1 + \exp(-\vec{w}^T\vec{x}_i y_i))
+\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron vs. log-loss as a function of
+    $\vec{w}^T\vec{x} y$}
+\includegraphics[width=\textwidth]{images/perceptron-loss.png}
 \end{frame}
 
 \begin{frame}\frametitle{Perceptron Algorithm: convergence theorem}
+
+{\bf Perceptron convergence theorem:} The perceptron algorithm will
+find $\vec{w}$ with zero error on training set after a finite number
+of mistakes if one exists!
+\vspace{5mm}
+
 A training set $\{(x_1,y_1),\dots,(x_N,y_N)\}$ with diameter $R$ is
 separable with margin $\delta$ if there is a $\vec{w}_*$ with
 $\|\vec{w}_*\|=1$ such that: \begin{eqnarray*}
-  \vec{w}_*^T\vec{g}(\vec{x}_i,y_i) - \vec{w}_*^T\vec{g}(\vec{x}_i,\hat{y}_i)
+  \vec{w}_*^T\vec{g}(\vec{x}_i,y_i) - \vec{w}_*^T\vec{g}(\vec{x}_i,\bar{y}_i)
   &>& \delta \quad\text{and}\\ \|\vec{g}(\vec{x}_i, y_i) -
-  \vec{g}(\vec{x}_i, \hat{y}_i)\| &<& R
+  \vec{g}(\vec{x}_i, \bar{y}_i)\| &<& R
 \end{eqnarray*}
-for all $i \in \{1,\dots,N\}$ and $\hat{y}_i \in \bar{\mathcal{Y}_i}$ where
+for all $i \in \{1,\dots,N\}$ and $\bar{y}_i \in \bar{\mathcal{Y}_i}$ where
 $\bar{\mathcal{Y}_i}$ is the set of {\bf incorrect} outputs and $y_i$
 is the correct output for $\vec{x}_i$.  In such a training set, the
 number of mistakes $K$ made by the perceptron algorithm is bounded
@@ -564,85 +694,41 @@ by: \[ K \leq \frac{R^2}{\delta^2}
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Perceptron Algorithm: loss function}
+\begin{frame}\frametitle{Perceptron Algorithm: margin}
 \begin{itemize}
-\item {\bf Perceptron update rule:}
-\[ \vec{w} \leftarrow \vec{w} 
-+\vec{g}(x_i,y_i)
--\vec{g}(x_i,\hat{y}_i) 
-\]
-\item {\bf Perceptron criterion (loss function):} This update rule can
-  be interpreted as stochastic gradient descent on the loss function:
-% (a variant of hinge loss with the hinge at origin): 
+\item The margin for input $\vec{x}_i$ is the difference between the
+  normalized score of the correct output and the closest incorrect
+  output:
 \[
-\loss_P(x_i, y_i; \vec{w}) = 
--\vec{w}^T \vec{g}(x_i,y_i)
-+\max_{y\in\mathcal{Y}} \vec{w}^T \vec{g}(x_i,y)
+  \text{margin}(\vec{x}_i; \vec{w}) = \frac{1}{\|w\|}
+  \left[ \vec{w}^T\vec{g}(\vec{x}_i,y_i) - \max_{\bar{y}_i \in 
+    \bar{\mathcal{Y}_i}} \vec{w}^T\vec{g}(\vec{x}_i,\bar{y}_i) \right]
 \]
-
-\item Compare this with log-loss from conditional log-linear models: \[
-\loss_L(x_i, y_i; \vec{w}) = 
--\vec{w}^T \vec{g}(x_i,y_i) 
-+\log \sum_{y\in\mathcal{Y}} \exp \vec{w}^T \vec{g}(x_i,y) 
-\]
-
-\item Compare the loss in binary case with the ones in Figure 7.5.
+where $\bar{\mathcal{Y}_i}$ is the set of incorrect outputs for $x_i$.
+\item The perceptron algorithm stops updating when margin $> 0$ for
+  every training example, and is indifferent to different solutions
+  that give positive margins.
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Perceptron Algorithm: the binary case}
-\begin{itemize}
-\item The general perceptron rule: $
-\hat{y} = \argmax_{y\in\mathcal{Y}} \vec{w}^T \vec{g}(\vec{x}, y)
-$
-\item With binary outputs $y\in\{-1,+1\}$, setting $\vec{g}(\vec{x},
-  +1) = \vec{x}$ and $\vec{g}(\vec{x}, -1) = \vec{0}$ this becomes
-  (similar to logistic regression): \[ 
-\hat{y} = \begin{cases}
-+1,& \text{if } \vec{w}^T \vec{x} > 0\\
--1,& \text{otherwise.}
-\end{cases}
-\]
-%% \item Compare this with the most probable output from logistic regression: \[
-%% \hat{y} = \begin{cases}
-%% +1,& \text{if } \frac{1}{1+\exp(-\vec{w}^T \vec{x})} > \frac{1}{2} \\
-%% -1,& \text{otherwise.}
-%% \end{cases}
-%% \]
-\item The perceptron update rule becomes: \[
-\vec{w} \leftarrow \vec{w} 
-+ \vec{x}_i y_i
-\quad\text{if } \vec{w}^T\vec{x}_i y_i < 0
-\]
-\item The perceptron loss function becomes: \[
-\loss_P(x_i, y_i; \vec{w}) = \begin{cases}
--\vec{w}^T\vec{x}_i y_i,& \text{if } \vec{w}^T\vec{x}_i y_i<0 \\
-0,& \text{otherwise.}
-\end{cases}
-\]
-\end{itemize}
-\end{frame}
-
-\begin{frame}\frametitle{Perceptron (binary): convergence example}
+\begin{frame}\frametitle{Perceptron Algorithm: geometry of margin}
 \begin{columns}
-\column{.66\textwidth}
-\includegraphics[height=.4\textheight]{images/bishop-fig-4-7a.pdf}
-\includegraphics[height=.4\textheight]{images/bishop-fig-4-7b.pdf}\\ 
-\includegraphics[height=.4\textheight]{images/bishop-fig-4-7c.pdf}
-\includegraphics[height=.4\textheight]{images/bishop-fig-4-7d.pdf}
-\column{.33\textwidth}\footnotesize {\bf Figure 4.7}
-(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}
-       {Bishop 2006}): 
-Illustration of the convergence of the perceptron learning algorithm,
-showing data points from two classes (red and blue) in a
-two-dimensional feature space. The parameter vector w is shown as a
-black arrow together with the corresponding decision boundary (black
-line), in which the arrow points towards the decision region which
-classified as belonging to the red class.
+\column{.65\textwidth}
+\includegraphics[width=\textwidth]{images/bishop-fig-4-1.pdf}
+\column{.35\textwidth}\footnotesize {\bf Figure 4.1}
+(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}{Bishop
+  2006}): Geometry of the margin for the binary version of the
+perceptron with two dimensional input.  The output is $+1$ if
+$y(\vec{x})=\vec{w}^T\vec{x}+w_0 > 0$ and $-1$ otherwise (the bias
+term $w_0$ has been made explicit).  The decision surface, shown in
+red, is perpendicular to $\vec{w}$, and its displacement from the
+origin is controlled by the bias parameter $w_0$. Also, the signed
+orthogonal distance of a general point $\vec{x}$ from the decision
+surface (margin) is given by $y(\vec{x})/\|w\|$.
 \end{columns}
 \end{frame}
 
-\begin{frame}\frametitle{Perceptron (binary): regularization and margin}
+\begin{frame}\frametitle{Perceptron Algorithm: margin and robustness}
 \begin{center}
 \includegraphics[width=\textwidth]{images/largeMarginPrinciple2.pdf}
 \end{center}\footnotesize
@@ -650,12 +736,55 @@ classified as belonging to the red class.
   2012}): The perceptron algorithm finds an arbitrary separating
 boundary if there is one and stops updating afterwards.  If there is
 no separating boundary it may oscillate between different solutions.
-Different ways of regularizing the perceptron include {\bf voting},
+Different ways of making the perceptron more robust include {\bf voting},
 {\bf averaging}, and {\bf early stopping} (see
 \href{http://aclweb.org/anthology//W/W02/W02-1001.pdf}{Collins 2002}).
 Another alternative is to search for the solution with the {\bf
   maximum margin} (which leads us to SVMs).
 \end{frame}
+
+
+\begin{frame}\frametitle{Maximizing margin}
+\begin{itemize}
+\item To make the classifier more robust, we can find the $\vec{w}_*$
+  that maximizes the margin of the point(s) closest to the boundary: \[
+  \vec{w}_* = \argmax_\vec{w} \min_i \frac{1}{\|w\|}
+  \left[ \vec{w}^T\vec{g}(\vec{x}_i,y_i) - \max_{\bar{y}_i \in 
+    \bar{\mathcal{Y}_i}} \vec{w}^T\vec{g}(\vec{x}_i,\bar{y}_i) \right]
+\]
+\item The solution is not unique; any multiple of $\vec{w}$ will have
+  the same decision boundary and the same margins as $\vec{w}$.
+\item We can use the max-margin $\vec{w}$ of unit length: \[
+\vec{w}_* = \argmax_\vec{w}\; \min_i \left[ \vec{w}^T\vec{g}(\vec{x}_i,y_i) - \max_{\bar{y}_i \in 
+    \bar{\mathcal{Y}_i}} \vec{w}^T\vec{g}(\vec{x}_i,\bar{y}_i) \right]
+\;\text{s.t. } \|\vec{w}\|=1
+\]
+\item Or the one that makes the minimum score difference = 1: \[
+\vec{w}_* = \argmax_\vec{w}\; \frac{1}{\|\vec{w}\|}
+\;\text{s.t. } \min_i \left[ \vec{w}^T\vec{g}(\vec{x}_i,y_i) - \max_{\bar{y}_i \in 
+    \bar{\mathcal{Y}_i}} \vec{w}^T\vec{g}(\vec{x}_i,\bar{y}_i) \right]
+= 1
+\]
+or equivalently: \[
+\vec{w}_* = \argmin_\vec{w}\; \frac{1}{2} \|\vec{w}\|^2
+\;\text{s.t. } \forall i, \vec{w}^T\vec{g}(\vec{x}_i,y_i) - \max_{\bar{y}_i \in 
+    \bar{\mathcal{Y}_i}} \vec{w}^T\vec{g}(\vec{x}_i,\bar{y}_i) \geq 1
+\]
+\end{itemize}
+% - ok, this is bull shit
+% - why is maximizing the margin mean making it bigger than 1?  it doesn't.
+% - we are not maximizing margin (don't care once a point is past 1)
+% but minimizing finite margin violations?
+% - need to understand this common optimization trick. done.
+% - there are two things going on here.  slack variables allow
+% non-separable (or give difft solns even if separable).  slack does
+% not start from 0 but 1 (or what LSP calls the cost).
+% - slack variables change the problem from max-margin to something
+% totally different.
+\end{frame}
+
+\section{Extra slides}
+\frame{\sectionpage}
 
 \begin{frame}\frametitle{Perceptron (binary): geometry and margin}
 \begin{itemize}
@@ -682,23 +811,6 @@ Another alternative is to search for the solution with the {\bf
 % \item The figure on the next slide illustrates the geometry, however
 %   beware that a bias term $w_0$ has been made explicit.
 \end{itemize}
-\end{frame}
-
-\begin{frame}\frametitle{Perceptron (binary): geometry and margin}
-\begin{columns}
-\column{.66\textwidth}
-\includegraphics[width=\textwidth]{images/bishop-fig-4-1.pdf}
-\column{.33\textwidth}\footnotesize {\bf Figure 4.1}
-(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}{Bishop 2006}): 
-
-Illustration of the geometry of a linear discriminant function in two
-dimensions. The output is $+1$ if $y(\vec{x})=\vec{w}^T\vec{x}+w_0 > 0$
-and $-1$ otherwise.  The decision surface, shown in red, is
-perpendicular to $\vec{w}$, and its displacement from the origin is
-controlled by the bias parameter $w_0$. Also, the signed orthogonal
-distance of a general point $\vec{x}$ from the decision surface is
-given by $y(\vec{x})/\|w\|$.
-\end{columns}
 \end{frame}
 
 \begin{frame}\frametitle{SVM (binary): maximizing (hard) margin} %% LSP 103-104
