@@ -1,4 +1,4 @@
-\documentclass[ignorenonframetext,plain]{beamer}
+\documentclass[ignorenonframetext,plain,fleqn]{beamer}
 \setbeamertemplate{navigation symbols}{}
 
 \newcommand{\vocab}{\mathcal{V}}
@@ -9,6 +9,7 @@
 \newcommand{\score}{\mathit{score}}
 \newcommand{\loss}{\mathit{loss}}
 \renewcommand{\vec}{\mathbf}
+\newcommand{\pluseq}{\mathrel{+}=}
 
 \title{Learning to map strings to classes}
 \subtitle{Comp 542 Natural Language Processing}
@@ -495,54 +496,146 @@ terms of loss functions.
   probability.
 \item Not all alternative $y\in\mathcal{Y}$ may be equally bad, some
   wrong answers may be preferrable to others.  This is not represented
-  in log loss.
-\item However, see Bayesian decision theory
-  (e.g. \href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}{Bishop
-  2006} Sec. 1.5) to see how to integrate decision criteria with
-  probabilistic inference.  The non-probabilistic models discussed
-  here can be seen as solving both inference and decision stages
-  together.
+  in log loss.\footnote{To be more accurate, probabilistic models
+    separate inference and decision.  Probabilities are used to assign
+    likelihoods to various states of nature and decision theory is
+    used to take the optimal action under these likelihoods.
+    Non-probabilistic models try to solve both inference and decision
+    using a single optimization.  See 
+    \href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}{Bishop
+      2006} Sec. 1.5, \href{http://www.cs.ubc.ca/~murphyk/MLbook}{Murphy
+      2012} Sec. 5.7, 6.3, 6.5 for more detailed discussions.
+  }
 \end{itemize}
 \end{frame}
 
 
 \begin{frame}\frametitle{Perceptron Algorithm 
-(\href{http://www2.denizyuret.com/bibtex.php?fn=show&nselect=1&e1=986}{Rosenblatt 1958},
-\href{http://aclweb.org/anthology//W/W02/W02-1001.pdf}{Collins 2002})} %% LSP 101-103
+(\href{http://www2.denizyuret.com/bibtex.php?fn=show&nselect=1&e1=986}{Rosenblatt 1958})}
 Initialize $\vec{w} \leftarrow \vec{0}$\\
 For pass $t=1\dots T$, example $i=1\dots N$:\\
 \begin{itemize}
-\item $\hat{y}_i \leftarrow \argmax_{y\in\mathcal{Y}}
-    \vec{w}^T\vec{g}(x_i, y)$
-\item $\vec{w} \leftarrow \vec{w} 
-+\vec{g}(x_i,y_i)
--\vec{g}(x_i,\hat{y}_i)$ 
-\hspace{10mm}
-\small (No update if $\hat{y}_i=y_i$.)
+\item Predict $\hat{y}_i\in\{-1,+1\}$:
+\[
+\hat{y}_i \leftarrow \begin{cases}
++1,& \text{if } \vec{w}^T \vec{x}_i > 0\\
+-1,& \text{otherwise.}
+\end{cases}
+\]
+{\small (Note that the prediction rule is the same as logistic regression.)}
+\item Update $\vec{w}$ if you made a mistake:
+\[\vec{w} \leftarrow \vec{w} 
++ \vec{x}_i y_i
+\quad\text{ if } \hat{y}_i \neq y_i
+\]
 \end{itemize}
 \end{frame}
+
 
 \begin{frame}\frametitle{Perceptron Algorithm: example run}
 \begin{columns}
 \column{.66\textwidth}
 \includegraphics[height=.4\textheight]{images/bishop-fig-4-7a.pdf}
-\includegraphics[height=.4\textheight]{images/bishop-fig-4-7b.pdf}\\ 
-\includegraphics[height=.4\textheight]{images/bishop-fig-4-7c.pdf}
+\includegraphics[height=.4\textheight]{images/bishop-fig-4-7b.pdf}\\ \includegraphics[height=.4\textheight]{images/bishop-fig-4-7c.pdf}
 \includegraphics[height=.4\textheight]{images/bishop-fig-4-7d.pdf}
 \column{.33\textwidth}\footnotesize {\bf Figure 4.7}
-(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}
-       {Bishop 2006}): 
-Example run of the perceptron algorithm, showing data points from two
-classes (red (+1) and blue (-1)) in a two-dimensional feature
-space. We take $\vec{g}(\vec{x}, +1) = \vec{x}$ and $\vec{g}(\vec{x},
--1) = \vec{0}$ for binary outputs.  The parameter vector $\vec{w}$ is
-shown as a black arrow together with the corresponding decision
-boundary (black line), in which the arrow points towards the decision
-region which classified as belonging to the red class.
+(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}{Bishop
+  2006}): Example run of the perceptron algorithm, showing data points
+from two classes: red (+1) and blue (-1) in a 2D feature space. The
+parameter vector $\vec{w}$ is shown as a black arrow together with the
+corresponding decision boundary (black line), in which the arrow
+points towards the decision region which classified as belonging to
+the red class.
 \end{columns}
 \end{frame}
 
+
+\begin{frame}\frametitle{Perceptron Algorithm: geometry}
+\begin{columns}
+\column{.65\textwidth}
+\includegraphics[width=\textwidth]{images/bishop-fig-4-1.pdf}
+\column{.35\textwidth}\footnotesize {\bf Figure 4.1}
+(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}{Bishop
+  2006}): Geometry of a binary perceptron with two dimensional input.
+The output is $+1$ if $y(\vec{x})=\vec{w}^T\vec{x}+w_0 > 0$ and $-1$
+otherwise (the bias term $w_0$ has been made explicit).  The decision
+surface, shown in red, is perpendicular to $\vec{w}$, and its
+displacement from the origin is controlled by the bias parameter
+$w_0$. Also, the signed orthogonal distance of a general point
+$\vec{x}$ from the decision surface (margin) is given by
+$y(\vec{x})/\|w\|$.
+\end{columns}
+\end{frame}
+
+
+\begin{frame}\frametitle{What does the perceptron optimize?}
+\begin{itemize}
+\item We typically represent a predictor $h$ in terms of some parameters
+  $\vec{w}$ and search for $\vec{w}$ that minimize empirical
+  risk: \[ 
+  \argmin_\vec{w} \sum_{i=1}^N \loss(x_i, y_i; \vec{w})
+  \]
+\item {\bf Gradient descent} can be used when no closed form solution
+  is available (however, beware of local minima): \[ \vec{w} \leftarrow
+  \vec{w} - \alpha \sum_{i=1}^N \nabla \loss(x_i, y_i; \vec{w})
+\]
+\item {\bf
+  \href{http://en.wikipedia.org/wiki/Stochastic_gradient_descent}
+       {Stochastic gradient descent}} approximates the true gradient 
+  of the loss by a gradient at a single example: \[ \vec{w}
+  \leftarrow \vec{w} - \alpha\, \nabla \loss(x_i, y_i; \vec{w})
+\]
+\end{itemize}
+\end{frame}
+
+
 \begin{frame}\frametitle{Perceptron Algorithm: loss function}
+\begin{itemize}
+\item The perceptron update rule:
+\[
+\vec{w} \leftarrow \vec{w} 
++ \vec{x}_i y_i
+\quad\text{ if } \hat{y}_i \neq y_i
+\]
+\item can be seen as performing stochastic gradient descent of the
+  following loss function:
+\[
+\loss_P(x_i, y_i; \vec{w}) = \begin{cases}
+-\vec{w}^T\vec{x}_i y_i,& \text{if } \vec{w}^T\vec{x}_i y_i<0 \\
+0,& \text{otherwise.}
+\end{cases}
+\]
+\item Compare this with log-loss from logistic regression: \[
+  \loss_{LR}(x_i, y_i; \vec{w}) = \log(1 + \exp(-\vec{w}^T\vec{x}_i y_i))
+\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Perceptron vs. log-loss as a function of
+    $\vec{w}^T\vec{x} y$}
+\includegraphics[width=\textwidth]{images/perceptron-loss.png}
+\end{frame}
+
+
+\begin{frame}\frametitle{Multiclass Perceptron
+(\href{http://aclweb.org/anthology//W/W02/W02-1001.pdf}{Collins 2002})} %% LSP 101-103
+Initialize $\vec{w} \leftarrow \vec{0}$\\
+For pass $t=1\dots T$, example $i=1\dots N$:\\
+\begin{itemize}
+\item $\hat{y}_i \leftarrow \argmax_{y\in\mathcal{Y}}
+    \vec{w}^T\vec{g}(\vec{x}_i, y)$
+\item $\vec{w} \leftarrow \vec{w} 
++\vec{g}(\vec{x}_i,y_i)
+-\vec{g}(\vec{x}_i,\hat{y}_i)$ 
+\hspace{10mm}
+\small (No update if $\hat{y}_i=y_i$.)
+\end{itemize}
+\vspace{20mm}
+Note that we can recover the binary perceptron algorithm if we set
+$\vec{g}(\vec{x},+1)=\vec{x}$ and $\vec{g}(\vec{x},-1)=\vec{0}$.
+\end{frame}
+
+\begin{frame}\frametitle{Multiclass Perceptron: loss function}
 \begin{itemize}
 \item {\bf Perceptron update rule:}
 \[ \vec{w} \leftarrow \vec{w} 
@@ -550,7 +643,7 @@ region which classified as belonging to the red class.
 -\vec{g}(x_i,\hat{y}_i)
 \]
 \item {\bf Perceptron criterion (loss function):} This update rule can
-  be interpreted as {\bf stochastic gradient descent} (see next slide)
+  be interpreted as {\bf stochastic gradient descent}
   on the following loss function:
 % (negative of margin for wrong outputs, 0 for correct ones):
 % (a variant of hinge loss with the hinge at origin): 
@@ -572,73 +665,7 @@ region which classified as belonging to the red class.
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Stochastic gradient descent}
-\begin{itemize}
-\item We typically represent a predictor $h$ in terms of some parameters
-  $\vec{w}$ and search for $\vec{w}$ that minimize empirical
-  risk: \[ 
-  \argmin_\vec{w} \sum_{i=1}^N \loss(x_i, y_i; \vec{w})
-  \]
-\item {\bf Gradient descent} can be used when no closed form solution
-  is available (however, beware of local minima): \[ \vec{w} \leftarrow
-  \vec{w} - \alpha \sum_{i=1}^N \nabla \loss(x_i, y_i; \vec{w})
-\]
-\item {\bf
-  \href{http://en.wikipedia.org/wiki/Stochastic_gradient_descent}
-       {Stochastic gradient descent}} approximates the true gradient 
-  of the loss by a gradient at a single example: \[ \vec{w}
-  \leftarrow \vec{w} - \alpha\, \nabla \loss(x_i, y_i; \vec{w})
-\]
-\end{itemize}
-\end{frame}
-
-\begin{frame}\frametitle{Perceptron Algorithm: the binary case}
-\begin{itemize}
-\item Consider a problem with binary outputs: $y\in\{-1,+1\}$.
-\item Set $\vec{g}(\vec{x}, +1) = \vec{x}$ and $\vec{g}(\vec{x}, -1) = \vec{0}$.
-\item The perceptron decision rule $\hat{y} =
-  \argmax_{y\in\mathcal{Y}} \vec{w}^T \vec{g}(\vec{x}, y)$ becomes
-  (similar to logistic regression): \[ 
-\hat{y} = \begin{cases}
-+1,& \text{if } \vec{w}^T \vec{x} > 0\\
--1,& \text{otherwise.}
-\end{cases}
-\]
-%% \item Compare this with the most probable output from logistic regression: \[
-%% \hat{y} = \begin{cases}
-%% +1,& \text{if } \frac{1}{1+\exp(-\vec{w}^T \vec{x})} > \frac{1}{2} \\
-%% -1,& \text{otherwise.}
-%% \end{cases}
-%% \]
-\item The update rule $\{\vec{w} \leftarrow \vec{w} 
-+\vec{g}(x_i,y_i)
--\vec{g}(x_i,\hat{y}_i)\}$ becomes: \[
-\vec{w} \leftarrow \vec{w} 
-+ \vec{x}_i y_i
-\quad\text{if } \vec{w}^T\vec{x}_i y_i < 0
-\]
-\item $\loss_P(x_i, y_i; \vec{w}) = 
--\vec{w}^T \vec{g}(x_i,y_i)
-+\max_{y\in\mathcal{Y}} \vec{w}^T \vec{g}(x_i,y)$
-becomes: \[
-\loss_P(x_i, y_i; \vec{w}) = \begin{cases}
--\vec{w}^T\vec{x}_i y_i,& \text{if } \vec{w}^T\vec{x}_i y_i<0 \\
-0,& \text{otherwise.}
-\end{cases}
-\]
-\item Compare this with log-loss from logistic regression: \[
-  \loss_{LR}(x_i, y_i; \vec{w}) = \log(1 + \exp(-\vec{w}^T\vec{x}_i y_i))
-\]
-\end{itemize}
-\end{frame}
-
-\begin{frame}\frametitle{Perceptron vs. log-loss as a function of
-    $\vec{w}^T\vec{x} y$}
-\includegraphics[width=\textwidth]{images/perceptron-loss.png}
-\end{frame}
-
 \begin{frame}\frametitle{Perceptron Algorithm: convergence theorem}
-
 {\bf Perceptron convergence theorem:} The perceptron algorithm will
 find $\vec{w}$ with zero error on training set after a finite number
 of mistakes if one exists!
@@ -694,40 +721,6 @@ by: \[ K \leq \frac{R^2}{\delta^2}
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{Perceptron Algorithm: margin}
-\begin{itemize}
-\item The margin for input $\vec{x}_i$ is the difference between the
-  normalized score of the correct output and the closest incorrect
-  output:
-\[
-  \text{margin}(\vec{x}_i; \vec{w}) = \frac{1}{\|w\|}
-  \left[ \vec{w}^T\vec{g}(\vec{x}_i,y_i) - \max_{\bar{y}_i \in 
-    \bar{\mathcal{Y}_i}} \vec{w}^T\vec{g}(\vec{x}_i,\bar{y}_i) \right]
-\]
-where $\bar{\mathcal{Y}_i}$ is the set of incorrect outputs for $x_i$.
-\item The perceptron algorithm stops updating when margin $> 0$ for
-  every training example, and is indifferent to different solutions
-  that give positive margins.
-\end{itemize}
-\end{frame}
-
-\begin{frame}\frametitle{Perceptron Algorithm: geometry of margin}
-\begin{columns}
-\column{.65\textwidth}
-\includegraphics[width=\textwidth]{images/bishop-fig-4-1.pdf}
-\column{.35\textwidth}\footnotesize {\bf Figure 4.1}
-(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}{Bishop
-  2006}): Geometry of the margin for the binary version of the
-perceptron with two dimensional input.  The output is $+1$ if
-$y(\vec{x})=\vec{w}^T\vec{x}+w_0 > 0$ and $-1$ otherwise (the bias
-term $w_0$ has been made explicit).  The decision surface, shown in
-red, is perpendicular to $\vec{w}$, and its displacement from the
-origin is controlled by the bias parameter $w_0$. Also, the signed
-orthogonal distance of a general point $\vec{x}$ from the decision
-surface (margin) is given by $y(\vec{x})/\|w\|$.
-\end{columns}
-\end{frame}
-
 \begin{frame}\frametitle{Perceptron Algorithm: margin and robustness}
 \begin{center}
 \includegraphics[width=\textwidth]{images/largeMarginPrinciple2.pdf}
@@ -743,48 +736,245 @@ Another alternative is to search for the solution with the {\bf
   maximum margin} (which leads us to SVMs).
 \end{frame}
 
+\begin{frame}\frametitle{Introducing margin}
+\begin{itemize}
+\item Let $\delta(\vec{w},\vec{x}_i)$ be the difference between the
+  score of the correct output and the closest incorrect output for
+  input $\vec{x}_i$:
+\[
+  \delta(\vec{w}, \vec{x}_i) =
+  \vec{w}^T\vec{g}(\vec{x}_i,y_i) - \max_{\bar{y}_i \in 
+    \bar{\mathcal{Y}_i}} \vec{w}^T\vec{g}(\vec{x}_i,\bar{y}_i)
+\]
+where $\bar{\mathcal{Y}_i}$ is the set of incorrect outputs for $x_i$.
+\item Note that in the binary case (i.e. $y_i\in\{-1,+1\}$) using 
+$\vec{g}(\vec{x},+1)=\vec{x}$ and $\vec{g}(\vec{x},-1)=\vec{0}$,
+$\delta$ becomes:
+\[
+  \delta(\vec{w}, \vec{x}_i) = \vec{w}^T\vec{x}_i y_i
+\]
+\item Different multiples of $\vec{w}$ will give different scores but
+  will have the same decision boundaries.  We normalize $\delta$ and
+  define {\bf margin} as:
+\[
+  \text{margin}(\vec{w},\vec{x}_i) = \frac{\delta(\vec{w},\vec{x}_i)}{\|\vec{w}\|}
+\]
+\end{itemize}
+\end{frame}
+
 
 \begin{frame}\frametitle{Maximizing margin}
 \begin{itemize}
 \item To make the classifier more robust, we can find the $\vec{w}_*$
-  that maximizes the margin of the point(s) closest to the boundary: \[
-  \vec{w}_* = \argmax_\vec{w} \min_i \frac{1}{\|w\|}
-  \left[ \vec{w}^T\vec{g}(\vec{x}_i,y_i) - \max_{\bar{y}_i \in 
-    \bar{\mathcal{Y}_i}} \vec{w}^T\vec{g}(\vec{x}_i,\bar{y}_i) \right]
+  that maximizes the margin of the point(s) closest to the boundary: 
+\[
+  \vec{w}_* &=& \argmax_\vec{w} \min_i \frac{\delta(\vec{w},\vec{x}_i)}{\|\vec{w}\|} 
 \]
 \item The solution is not unique; any multiple of $\vec{w}$ will have
-  the same decision boundary and the same margins as $\vec{w}$.
-\item We can use the max-margin $\vec{w}$ of unit length: \[
-\vec{w}_* = \argmax_\vec{w}\; \min_i \left[ \vec{w}^T\vec{g}(\vec{x}_i,y_i) - \max_{\bar{y}_i \in 
-    \bar{\mathcal{Y}_i}} \vec{w}^T\vec{g}(\vec{x}_i,\bar{y}_i) \right]
+  the same decision boundaries and the same margins as $\vec{w}$.
+\item We can pick the max-margin $\vec{w}$ of unit length: \[
+\vec{w}_* = \argmax_\vec{w}\; \min_i \delta(\vec{w},\vec{x}_i)
 \;\text{s.t. } \|\vec{w}\|=1
 \]
 \item Or the one that makes the minimum score difference = 1: \[
 \vec{w}_* = \argmax_\vec{w}\; \frac{1}{\|\vec{w}\|}
-\;\text{s.t. } \min_i \left[ \vec{w}^T\vec{g}(\vec{x}_i,y_i) - \max_{\bar{y}_i \in 
-    \bar{\mathcal{Y}_i}} \vec{w}^T\vec{g}(\vec{x}_i,\bar{y}_i) \right]
-= 1
+\;\text{s.t. } \min_i \delta(\vec{w},\vec{x}_i) = 1
 \]
 or equivalently: \[
 \vec{w}_* = \argmin_\vec{w}\; \frac{1}{2} \|\vec{w}\|^2
-\;\text{s.t. } \forall i, \vec{w}^T\vec{g}(\vec{x}_i,y_i) - \max_{\bar{y}_i \in 
-    \bar{\mathcal{Y}_i}} \vec{w}^T\vec{g}(\vec{x}_i,\bar{y}_i) \geq 1
+\;\text{s.t. } \forall i, \delta(\vec{w},\vec{x}_i) \geq 1
 \]
 \end{itemize}
 % - ok, this is bull shit
 % - why is maximizing the margin mean making it bigger than 1?  it doesn't.
+% > actually it doesn't have to be 1, any finite value will do.
 % - we are not maximizing margin (don't care once a point is past 1)
 % but minimizing finite margin violations?
+% > yes, ``margin violations'' as a surrogate for number of mistakes.
 % - need to understand this common optimization trick. done.
+% > everything comes out of any multiple of w being the same.
 % - there are two things going on here.  slack variables allow
 % non-separable (or give difft solns even if separable).  slack does
 % not start from 0 but 1 (or what LSP calls the cost).
 % - slack variables change the problem from max-margin to something
 % totally different.
+% > not quite, minimizing slack is a surrogate for minimizing mistakes.
 \end{frame}
+
+\begin{frame}\frametitle{Introducing slack: SVM}
+The optimization problem: 
+\[
+\vec{w}_* = \argmin_\vec{w}\; \frac{1}{2} \|\vec{w}\|^2
+\;\text{s.t. } \forall i, \delta(\vec{w},\vec{x}_i) \geq 1
+\]
+will have no solutions if the data is not separable.  {\bf Support
+  vector machines} introduce {\bf slack variables} $\xi_i \geq 0$ to
+allow some points to violate the margin:
+\[ 
+\forall i, \delta(\vec{w},\vec{x}_i) \geq 1 - \xi_i
+\]
+and minimize a linear combination of the weight norm and margin
+violations:
+\[
+\min_{\vec{w},\xi_i\geq 0}\; \frac{C}{2} \|\vec{w}\|^2
++ \frac{1}{N} \sum_{i=1}^N \xi_i
+\quad\text{s.t. }
+\forall i, \delta(\vec{w},\vec{x}_i) \geq 1 - \xi_i
+\]
+\end{frame}
+
+\begin{frame}\frametitle{Geometry of slack variables} %% LSP 103-104
+%% \begin{itemize}
+%% \item If the data is not separable we may need to allow some points to
+%%   be misclassified.
+%% \item We introduce a slack variable $\xi_i$ for each data point
+%%   $(\mathbf{x}_i,y_i)$ defined as: \[
+%%   \xi_i = \max(0, 1-\mathbf{w}^T\mathbf{x_i}y_i)
+%% \]
+%% \end{itemize}
+\begin{center}
+\includegraphics[height=.6\textheight]{images/bishop-fig-7-3.pdf}
+\end{center}
+\footnotesize {\bf Figure 7.3}
+(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}{Bishop
+  2006}): The red line is the boundary, the blue lines are the margins
+and $y=\mathbf{w}^T\mathbf{x}$ in the figure.  Note that $\xi_i=0$ if
+$x_i$ is on the right side of the margin, $0<\xi_i\leq 1$ if $x_i$ is
+on the wrong side of the margin but the right side of the boundary,
+and $\xi_i > 1$ if $x_i$ is on the wrong side of the boundary.
+\end{frame}
+
+\begin{frame}\frametitle{Comparison of loss functions} %% LSP 103-104
+\small
+\begin{itemize}
+\item Define $\delta_i = \vec{w}^T\vec{x}_i y_i$.
+\item The hard margin optimization can be equivalently stated as: \[
+% \vec{w}_* = \argmin_\vec{w}\frac{1}{2}\|\vec{w}\|^2
+%\quad\text{such that } \forall i ,\; \vec{w}^T\vec{x}_i y_i \geq 1
+  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_\infty(\delta_i) + \frac{C}{2} \|\vec{w}\|^2
+\quad\text{where }
+E_\infty(\delta)=\begin{cases}
+0,& \text{if } \delta \geq 1 \\
+\infty,& \text{otherwise.}
+\end{cases}
+\]
+\item The soft margin optimization can be stated as: \[
+  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_{SV}(\delta_i) + \frac{C}{2} \|\vec{w}\|^2
+\quad\text{where }
+E_{SV}(\delta)=\begin{cases}
+0,& \text{if } \delta \geq 1 \\
+1-\delta,& \text{otherwise.}
+\end{cases}
+\]
+\item Compare this to logistic regression with a Gaussian prior: \[
+  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_{LR}(\delta_i) + \frac{C}{2} \|\vec{w}\|^2
+\quad\text{where }
+E_{LR}(\delta) = \log(1 + \exp(-\delta))
+\]
+\item Compare this with unregularized marginless perceptron: \[
+  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_P(\delta_i)
+\quad\text{where }
+E_{P}(\delta)=\begin{cases}
+0,& \text{if } \delta \geq 0 \\
+-\delta,& \text{otherwise.}
+\end{cases}
+\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Comparison of loss functions}
+\begin{center}
+\includegraphics[height=.5\textheight]{images/bishop-fig-7-5.pdf}
+\end{center}\footnotesize
+{\bf Figure 7.5}
+(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}
+{Bishop, 2006}): Loss functions for binary classification $y=\pm 1$.
+$z=\mathbf{w}\mathbf{x}y$ and $E(z)$ is the error function for a
+single instance.  The red curve is the {\bf log-loss} of logistic
+regression, the black curve is the {\bf 0-1 loss}, the blue curve is
+{\bf hinge loss} (used by SVM), and the green curve is the {\bf
+  squared error} loss (used in regression).  Each loss function may
+imply different optimum parameters for a given model.
+\end{frame}
+
+
+\begin{frame}\frametitle{Introducing cost: Structural SVM}
+\begin{itemize}
+\item Instead of requiring a minimum score difference of 1:
+\[
+  \vec{w}^T\vec{g}(\vec{x}_i,y_i) -
+  \vec{w}^T\vec{g}(\vec{x}_i,\bar{y}_i) \geq 1\quad
+  \forall \bar{y}_i \in \bar{\mathcal{Y}_i}
+\]
+\item We could require larger margins for worse answers\footnote{
+  \href{http://www.morganclaypool.com/doi/abs/10.2200/S00361ED1V01Y201105HLT013}{LSP}
+  calls this ``cost''}: \[
+  \vec{w}^T\vec{g}(\vec{x}_i,y_i) -
+  \vec{w}^T\vec{g}(\vec{x}_i,y) \geq \delta_0(\vec{x}_i,y,y_i)\quad
+  \forall y \in \mathcal{Y}
+\]
+\item Minimizing margin violations: \[
+\min_\vec{w}\; 
+ \frac{C}{2} \|\vec{w}\|^2
++ \frac{1}{N} \sum_{i=1}^N 
+-  \vec{w}^T\vec{g}(\vec{x}_i,y_i) + \max_{y\in\mathcal{Y}}
+(  \vec{w}^T\vec{g}(\vec{x}_i,y) + \delta_0(\vec{x}_i,y,y_i))
+\]
+\item Note that this is equivalent to the standard SVM when
+  $\delta_0(\vec{x}_i,y,y_i)=[y\neq y_i]$\footnote{
+  \href{http://en.wikipedia.org/wiki/Iverson_bracket}{Iverson bracket}
+  notation: $[P]=1$ if $P$ is true and 0 otherwise.}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Structural SVM vs. Conditional log-linear models}
+\begin{itemize}
+\item Compare the structural SVM objective: \[
+\min_\vec{w}\; 
+ \frac{C}{2} \|\vec{w}\|^2
++ \frac{1}{N} \sum_{i=1}^N 
+-  \vec{w}^T\vec{g}(\vec{x}_i,y_i) + \max_{y\in\mathcal{Y}}
+(  \vec{w}^T\vec{g}(\vec{x}_i,y) + \delta_0(\vec{x}_i,y,y_i))
+\]
+\item to a conditional log-linear model with a Gaussian prior: \[
+\min_\vec{w}\;
+ \frac{C}{2} \|\vec{w}\|^2
++ \frac{1}{N} \sum_{i=1}^N 
+-\vec{w}^T \vec{g}(x_i,y_i) 
++\log \sum_{y\in\mathcal{Y}} \exp \vec{w}^T \vec{g}(x_i,y) 
+\]
+\item and to the perceptron loss function: \[
+\min_\vec{w}\;
+\frac{1}{N} \sum_{i=1}^N 
+-\vec{w}^T \vec{g}(x_i,y_i)
++\max_{y\in\mathcal{Y}} \vec{w}^T \vec{g}(x_i,y)
+\]
+\end{itemize}
+\end{frame}
+
+\end{document}
 
 \section{Extra slides}
 \frame{\sectionpage}
+
+\begin{frame}
+\begin{itemize}
+\item introduce di for the nominator score difference
+\item introduce cost?
+\item unconstrained version
+\item comparison with log-linear, perceptron
+\item binary version
+\item comparison with binary log-linear, perceptron
+\item comparison with 0-1 loss?  minimizing an upper bound on 0-1
+  loss.  call it margin violation instead of slack.  1 is arbitrary,
+  could be made as small as we want.  margin constant of eps would
+  upper bound a 0-eps loss.  what about minimizing perceptron loss?
+  eps=0 changes the game.  maximizing margin loses meaning once we
+  allow slack.  minimizing (an upper bound on) training set error
+  (with regularization) makes more sense.  gotta move on to
+  unsupervised and language related stuff.
+\end{itemize}
+\end{frame} 
 
 \begin{frame}\frametitle{Perceptron (binary): geometry and margin}
 \begin{itemize}
@@ -835,28 +1025,6 @@ or equivalently (for mathematical convenience): \[
 \end{frame}
 
 
-\begin{frame}\frametitle{SVM (binary): slack variables} %% LSP 103-104
-\begin{itemize}
-\item If the data is not separable we may need to allow some points to
-  be misclassified.
-\item We introduce a slack variable $\xi_i$ for each data point
-  $(\mathbf{x}_i,y_i)$ defined as: \[
-  \xi_i = \max(0, 1-\mathbf{w}^T\mathbf{x_i}y_i)
-\]
-\end{itemize}
-\begin{columns}
-\column{.6\textwidth}
-\includegraphics[width=\textwidth]{images/bishop-fig-7-3.pdf}
-\column{.4\textwidth}\footnotesize {\bf Figure 7.3}
-(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}{Bishop
-  2006}): The red line is the boundary, the blue lines are the margins
-and $y=\mathbf{w}^T\mathbf{x}$ in the figure.  Note that $\xi_i=0$ if
-$x_i$ is on the right side of the margin, $0<\xi_i\leq 1$ if $x_i$ is
-on the wrong side of the margin but the right side of the boundary,
-and $\xi_i > 1$ if $x_i$ is on the wrong side of the boundary.
-\end{columns}
-\end{frame}
-
 \begin{frame}\frametitle{SVM (binary): maximizing (soft) margin}
 \begin{itemize}
 \item The hard margin constraints $\vec{w}^T\vec{x}_i y_i \geq 1$ are
@@ -870,59 +1038,6 @@ and $\xi_i > 1$ if $x_i$ is on the wrong side of the boundary.
 \item $\lambda$ is a constant that sets the trade-off between our two
   objectives and can be determined using cross-validation.
 \end{itemize}
-\end{frame}
-
-\begin{frame}\frametitle{SVM (binary): loss function} %% LSP 103-104
-\small
-\begin{itemize}
-\item Define $z_i = \vec{w}^T\vec{x}_i y_i$.
-\item The hard margin optimization can be equivalently stated as: \[
-% \vec{w}_* = \argmin_\vec{w}\frac{1}{2}\|\vec{w}\|^2
-%\quad\text{such that } \forall i ,\; \vec{w}^T\vec{x}_i y_i \geq 1
-  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_\infty(z_i) + \frac{\lambda}{2} \|\vec{w}\|^2
-\quad\text{where }
-E_\infty(z)=\begin{cases}
-0,& \text{if } z \geq 1 \\
-\infty,& \text{otherwise.}
-\end{cases}
-\]
-\item The soft margin optimization can be stated as: \[
-  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_{SV}(z_i) + \frac{\lambda}{2} \|\vec{w}\|^2
-\quad\text{where }
-E_{SV}(z)=\begin{cases}
-0,& \text{if } z \geq 1 \\
-1-z,& \text{otherwise.}
-\end{cases}
-\]
-\item Compare this to logistic regression with a Gaussian prior: \[
-  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_{LR}(z_i) + \frac{\lambda}{2} \|\vec{w}\|^2
-\quad\text{where }
-E_{LR}(z) = \log(1 + \exp(-z))
-\]
-\item Compare this with unregularized marginless perceptron: \[
-  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_P(z_i)
-\quad\text{where }
-E_{P}(z)=\begin{cases}
-0,& \text{if } z \geq 0 \\
--z,& \text{otherwise.}
-\end{cases}
-\]
-\end{itemize}
-\end{frame}
-
-\begin{frame}\frametitle{Comparison of loss functions}
-\begin{center}
-\includegraphics[height=.5\textheight]{images/bishop-fig-7-5.pdf}
-\end{center}\footnotesize
-{\bf Figure 7.5}
-(\href{http://research.microsoft.com/en-us/um/people/cmbishop/prml}
-{Bishop, 2006}): Loss functions for binary classification $y=\pm 1$.
-$z=\mathbf{w}\mathbf{x}y$ and $E(z)$ is the error function for a
-single instance.  The red curve is the {\bf log-loss} of logistic
-regression, the black curve is the {\bf 0-1 loss}, the blue curve is
-{\bf hinge loss} (used by SVM), and the green curve is the {\bf
-  squared error} loss (used in regression).  Each loss function may
-imply different optimum parameters for a given model.
 \end{frame}
 
 %% \begin{frame}\frametitle{Support Vector Machines: multi-class version}
@@ -939,4 +1054,3 @@ imply different optimum parameters for a given model.
 %% \end{itemize}
 %% \end{frame}
 
-\end{document}
