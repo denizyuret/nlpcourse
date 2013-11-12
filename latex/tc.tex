@@ -768,7 +768,7 @@ $\delta$ becomes:
 \item To make the classifier more robust, we can find the $\vec{w}_*$
   that maximizes the margin of the point(s) closest to the boundary: 
 \[
-  \vec{w}_* &=& \argmax_\vec{w} \min_i \frac{\delta(\vec{w},\vec{x}_i)}{\|\vec{w}\|} 
+  \vec{w}_* = \argmax_\vec{w} \min_i \frac{\delta(\vec{w},\vec{x}_i)}{\|\vec{w}\|} 
 \]
 \item The solution is not unique; any multiple of $\vec{w}$ will have
   the same decision boundaries and the same margins as $\vec{w}$.
@@ -951,6 +951,242 @@ imply different optimum parameters for a given model.
 \]
 \end{itemize}
 \end{frame}
+
+\section{Unsupervised models}
+\frame{\sectionpage}
+
+\begin{frame}\frametitle{Unsupervised learning}
+\begin{itemize}
+\item The supervised methods we have seen so far learn to predict an
+  output $y$ given an input $x$ from a training set with $(x, y)$
+  input-output pairs.
+\item Unsupervised methods learn to predict an output $y$ given an
+  input $x$ without observing any $(x, y)$ examples, just from a
+  training set of $x$'s!
+\item {\sl But how can you learn anything about $y$'s without having
+  any information about $y$'s?} you may naturally ask...
+\item Even though we do not observe any $y$ examples, we do have
+  information about $y$'s and how they relate to $x$'s in our
+  hypothesized model, e.g. in the form of $p(x,y|w)$ for a
+  generative model.
+\item Question: why would one ever want to do this?
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Unsupervised generative models}
+\begin{itemize}
+\item For supervised generative models we maximized log-likelihood: \[
+  \argmax_w \sum_i \log p(x_i, y_i|w)
+\]
+\item But if we just observe $x$'s maximizing log-likelihood means: \[
+  \argmax_w \sum_i \log p(x_i|w)
+\]
+\item For unsupervised learning, we can incorporate the $y$'s in the
+  model (expressing information about how they relate to $x$'s) but
+  then marginalize them out in the likelihood.  Using the total
+  probability theorem $p(x) = \sum_y p(x, y)$:
+\[ 
+\argmax_w \sum_i \log \sum_y p(x_i, y|w)
+\]
+\item Question: can you similarly unsupervizify conditional and
+  nonprobabilistic models?
+%% TODO: we should probably use generative vs discriminative; joint vs
+%% conditional and not mix them up.
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Expectation Maximization Algorithm}
+The EM algorithm starts with random initial parameters $\vec{w}_0$ and
+maximizes the unsupervised log-likelihood by repeating the following
+two steps until convergence:
+\begin{itemize}
+\item {\bf E step:} Calculate probabilities for all $y$ values for
+  each $\vec{x}_i$ in the training set given the current parameters
+  $\vec{w}_t$:
+\[
+  p(y|\vec{x}_i,\vec{w}_t) = \frac{p(\vec{x}_i, y|\vec{w}_t)}
+  {\sum_{y'\in\mathcal{Y}} p(\vec{x}_i, y'|\vec{w}_t)}
+\]
+\item {\bf M step:} Reestimate the model parameters by maximizing the
+  expected log-likelihood under $\vec{w}_t$:
+\[
+\vec{w}_{t+1} = \argmax_\vec{w} \sum_i \sum_y p(y|\vec{x}_i,\vec{w}_t)
+\log p(\vec{x}_i, y | \vec{w})
+\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Naive Bayes example}
+\begin{itemize}
+\item The (supervised) generative model for Naive Bayes:  
+\[
+  \Pr(\vec{x}_i,y_i) = q_{y_i} \prod_j q_{x_{ij}|y_i}
+\]
+where $\vec{x}_i$ is the i'th document, $y_i$ its class, and $x_{ij}$
+its j'th word.
+\item The (supervised) maximum likelihood parameter estimates: 
+\[
+\hat{q}_y = 
+\frac{\text{number of docs with class $y$}}
+{\text{number of docs}}
+\]
+\[
+\hat{q}_{x_i|y} = 
+\frac{\text{number of words $=x_i$ in class $y$}}
+{\text{number of words in class $y$}}
+\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Naive Bayes example}
+\begin{itemize}
+\item The E-step for Naive Bayes: \[
+p(y|\vec{x}_i, \vec{q}) = 
+\frac{q_y \prod_j q_{x_{ij}|y}}
+{\sum_{y'} q_{y'} \prod_j q_{x_{ij}|y'}}
+\]
+\item The M-step for Naive Bayes\footnote{
+(\href{http://www.cs.columbia.edu/~mcollins/em.pdf}{Collins, 2013})
+  has slightly different formulas because he uses the Bernoulli Naive
+  Bayes model (each word is assigned 0 or 1) whereas we are using the
+  multinomial model (word counts taken into account).  See
+  (\href{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.65.9324&rep=rep1&type=pdf}{McCallum
+  and Nigam, 1998}) for a comparison.
+}:
+\[
+q_y^{(t+1)} = \frac{1}{N} \sum_{i=1}^N p(y|\vec{x}_i, \vec{q}^{(t)})
+\]
+\[
+q_{w|y}^{(t+1)} = 
+\frac{\sum_{i=1}^N p(y|\vec{x}_i, \vec{q}^{(t)})\; |\,j:x_{ij}=w|}
+{\sum_{i=1}^N p(y|\vec{x}_i, \vec{q}^{(t)})\; |\vec{x}_i|}
+\]
+%% TODO: Proof of the M-step?
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Expected Likelihood}
+The name of the algorithm refers to calculating the {\bf
+  expectation} of the likelihood and {\bf maximization} of the
+  (expected) likelihood.  If we knew the output $y_i$, the
+  log-likelihood of $\vec{w}$ would be:
+\[ \ell(\vec{w}) = \sum_i \log p(\vec{x}_i, y_i|\vec{w}) \]
+But we don't know $y_i$, all we have is a probability distribution
+$p(y|\vec{x}_i,\vec{w}_t)$ based on our current parameter estimate
+$\vec{w}_t$.  Based on this distribution, the {\bf expected}
+likelihood is:
+\[ Q(\vec{w},\vec{w}_t) = \sum_i \sum_y p(y|\vec{x}_i,\vec{w}_t) \log p(\vec{x}_i, y | \vec{w}) \]
+\end{frame}
+
+\begin{frame}\frametitle{Theorem: EM steps increase likelihood}
+1. Expected likelihood improves at each step:
+\[ Q(\vec{w}_{t+1},\vec{w}_t) \geq Q(\vec{w}_t,\vec{w}_t)
+\text{ because }
+\vec{w}_{t+1} = \argmax_\vec{w} Q(\vec{w},\vec{w}_t) \]
+2. Actual likelihood improves even more: \scriptsize
+\begin{eqnarray*}
+\ell(\vec{w})-\ell(\vec{w}_t)
+&=& \sum_i \log p(\vec{x}_i|\vec{w}) 
+- \sum_i \log p(\vec{x}_i|\vec{w}_t)
+\\ &=& \sum_i \log \frac{p(\vec{x}_i|\vec{w})}{p(\vec{x}_i|\vec{w}_t)} 
+= \sum_i \log \sum_y \frac{p(\vec{x}_i,y|\vec{w})}{p(\vec{x}_i|\vec{w}_t)} 
+\\ &=& \sum_i \log \sum_y \frac{p(y|\vec{x}_i,\vec{w}_t)}{p(y|\vec{x}_i,\vec{w}_t)}
+\frac{p(\vec{x}_i,y|\vec{w})}{p(\vec{x}_i|\vec{w}_t)} 
+\\ &=& \sum_i \log \sum_y p(y|\vec{x}_i,\vec{w}_t)
+\frac{p(\vec{x}_i,y|\vec{w})}{p(\vec{x}_i,y|\vec{w}_t)} 
+\\ &\geq& \sum_i \sum_y p(y|\vec{x}_i,\vec{w}_t)
+\log \frac{p(\vec{x}_i,y|\vec{w})}{p(\vec{x}_i,y|\vec{w}_t)} 
+\quad\text{(Jensen's inequality)}
+\\ &=& \sum_i \sum_y p(y|\vec{x}_i,\vec{w}_t)\log p(\vec{x}_i,y|\vec{w}) 
+- \sum_i \sum_y p(y|\vec{x}_i,\vec{w}_t)\log p(\vec{x}_i,y|\vec{w}_t) 
+\\ &=& Q(\vec{w},\vec{w}_t) - Q(\vec{w}_t,\vec{w}_t)
+\end{eqnarray*}
+\end{frame}
+
+\begin{frame}\frametitle{Variations on Expectation Maximization}
+\begin{itemize}
+\item Instead of using weights $p(y|\vec{x}_i,\vec{w}_t)$ in the
+  expected likelihood:
+\[ Q(\vec{w},\vec{w}_t) = \sum_i \sum_y p(y|\vec{x}_i,\vec{w}_t) \log p(\vec{x}_i, y | \vec{w}) \]
+\item If we know the correct $y_i$ and give all the weight to them:
+\[ Q'(\vec{w},\vec{w}_t) = \sum_i \sum_y [y=y_i] \log p(\vec{x}_i, y | \vec{w}) \]
+we simply get back supervised maximum likelihood.
+\item If we give all the weight to the best answer under $\vec{w}_t$:
+\[ Q''(\vec{w},\vec{w}_t) = \sum_i \sum_y [y=\argmax p(y|\vec{x}_i,\vec{w}_t)] 
+\log p(\vec{x}_i, y | \vec{w}) \] then we get what is known as {\bf
+  hard EM} or {\bf viterbi EM}.  Note that hard EM will converge to a
+specific $(\vec{w}, \vec{y})$ pair that (locally) maximizes likelihood
+whereas regular (soft) EM will converge to a $\vec{w}$ that maximizes
+the expected likelihood (under its own $y$ distribution), and the two
+may not converge to the same $\vec{w}$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Notes on optimization}
+Given a function $f:\mathbb{R}^n\rightarrow\mathbb{R}$ and some
+positive coefficients $\alpha_i$ where $\alpha_i \geq 0, \sum \alpha_i
+= 1$, we say $f$ is:
+\begin{itemize}
+\item {\bf Convex} if
+$  
+f(\sum \alpha_i \vec{x}_i) \leq \sum \alpha_i f(\vec{x}_i)
+$.  Some examples:
+\begin{itemize}
+\item $ax+b$
+\item $\exp ax$
+\item $x^a$ (on $x>0$, for $a\geq 1$ or $a\leq 0$) and $|x|^a$ (for $a\geq 1$)
+\item $x\log x$ (on $x>0$)
+\item $\log\sum\exp x_i$ (on $\vec{x}=(x_1,\dots,x_n) \in \mathbb{R}^n$)
+\end{itemize}
+\item {\bf Concave} if
+$  
+f(\sum \alpha_i \vec{x}_i) \geq \sum \alpha_i f(\vec{x}_i)
+$.  Some examples:
+\begin{itemize}
+\item $ax+b$
+\item $x^a$ (on $x>0$, for $0 \leq a\leq 1$)
+\item $\log x$ (on $x>0$)
+\end{itemize}
+\item Linear functions can be considered convex or concave.
+\item Sum of two convex (concave) functions are convex (concave).
+\item Negative of a convex function is concave.
+\item Function composition is a bit more complicated, see
+  (\href{http://www.stanford.edu/~boyd/cvxbook}{Boyd and Vandenberghe,
+  2004}) Ch. 3 for more details.
+\end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{Notes on optimization}
+\begin{itemize}
+\item EM is just an optimization algorithm, other algorithms can be
+  used to maximize $\sum_i \log \sum_y p(x_i, y|w)$.
+\item The objective function is often non-concave, thus EM often
+  converges to a local maximum and is sensitive to initialization.
+\item Log likelihood for supervised generative log-linear models:
+\[
+\ell(\vec{w}) = \sum_i (\vec{w}^T \vec{g}(\vec{x}_i,y_i) - \log \sum_{\vec{x},y}
+    \exp \vec{w}^T \vec{g}(\vec{x}, y))
+\]
+The first term inside the sum is linear in $\vec{w}$.  The second term
+is $-\log\sum\exp$, which is concave, applied to a linear function of
+$\vec{w}$, thus concave.  Therefore the whole sum is concave with no
+local maxima.
+%% TODO: concave composed with linear is concave?  Doesn't it have to
+%% be non-decreasing?
+\item Log likelihood for unsupervised log-linear models: \[
+  \ell(\vec{w}) = \sum_i (\log (\sum_y \exp \vec{w}^T
+  \vec{g}(\vec{x}_i,y)) - \log (\sum_{\vec{x},y} \exp \vec{w}^T
+  \vec{g}(\vec{x}, y)))
+\]
+This time we have $+\log\sum\exp$ (convex) added to $-\log\sum\exp$
+(concave), thus the result is undetermined (see 
+\href{http://www.morganclaypool.com/doi/abs/10.2200/S00361ED1V01Y201105HLT013}{LSP}
+Fig 4.3).
+%% TODO: show that the M step is concave?
+\end{itemize}
+\end{frame}
+
+%% TODO: EM as coordinate ascent?  LSP 4.1.6, Bishop 9.4.
 
 \end{document}
 
