@@ -100,9 +100,9 @@ Z(\vec{x}) = \sum_{y'\in\mathcal{Y}} \exp \vec{w}^T \vec{g}(\vec{x}, y')
 \]
 
 In this problem we will apply a conditional log-linear model to the
-rain bucket question from Problem 1 using the same training set.  To
-make a direct comparison we will use 10 binary features (analogous to
-the parameters of the Naive Bayes model) specified in the following
+rain bucket question from Problem 1 {\bf using the same training set}.
+To make a direct comparison we will use 10 binary features (analogous
+to the parameters of the Naive Bayes model) specified in the following
 table:
 
 \begin{center}
@@ -129,6 +129,16 @@ likelihood also makes model expectations of all features equal to
 empirical expectations.
 
 \begin{enumerate}[(a)]
+\item Using the conditional log-linear model with the weight vector
+  $\vec{w}$ given above, what is the probability of rain given both
+  buckets are full?
+
+\[ p_\vec{w}(y=1 | x_1=1, x_2=1)= \]
+
+%% 111 3
+%% 110 1
+%% answer: 3/4
+
 \item What is the empirical expectation of the feature $g_{1*1}$
 based on the training set given in Problem 1?
 
@@ -147,15 +157,6 @@ g_{1*1}(\vec{x}_i, y') p_\vec{w}(y'|\vec{x}_i) =
 %% 4/8 p_w(1|11) = 1/2 exp(ln3)/[exp(ln3)+exp(0)] = 1/2 3/4 
 %% = 3/8
 
-\item Using the conditional log-linear model with the weight vector
-  $\vec{w}$ given above, what is the probability of rain given both
-  buckets are full?
-
-\[ p_\vec{w}(y=1 | x_1=1, x_2=1)= \]
-
-%% 111 3
-%% 110 1
-%% answer: 3/4
 \end{enumerate}
 
 
@@ -179,9 +180,9 @@ Z = \sum_{\vec{x}\in\mathcal{X}}
 \]
 
 In this problem we will apply a joint log-linear model to the rain
-bucket question from Problem 1 using the same training set.  To make a
-direct comparison we will use the 10 binary features from Problem 2
-with a different weight vector $\vec{w}$:
+bucket question from Problem 1 {\bf using the same training set}.  To
+make a direct comparison we will use the 10 binary features from
+Problem 2 with a different weight vector $\vec{w}$:
 
 \begin{center}
 \begin{tabular}{lllll}
@@ -220,18 +221,6 @@ expectations of all features equal to empirical expectations.
 %% 111 9
 %% total 32
 
-\item What is the model expectation of the feature $g_{1*1}$ based on
-  the joint log-linear model with the weight vector $\vec{w}$
-  given above?  Show your work.
-
-\[\mathbb{E}_{\vec{w}} [g_{1*1}] =
-\sum_{\vec{x},y} g_{1*1}(\vec{x}, y') p_\vec{w}(\vec{x}, y) =
-\]
-\vspace*{2cm}
-%% 101 3/32
-%% 111 9/32
-%% total 12/32 = 3/8
-
 \item Using this joint log-linear model, what is the probability of
   rain given both buckets are full?  Verify your answer by making sure
   $p(y=1|x_1,x_2) + p(y=0|x_1,x_2) = 1$.  You can use the following
@@ -243,6 +232,18 @@ expectations of all features equal to empirical expectations.
 %% 111 9/32
 %% 110 1/32
 %% answer: 9/10
+
+\item What is the model expectation of the feature $g_{1*1}$ based on
+  the joint log-linear model with the weight vector $\vec{w}$
+  given above?  Show your work.
+
+\[\mathbb{E}_{\vec{w}} [g_{1*1}] =
+\sum_{\vec{x},y} g_{1*1}(\vec{x}, y') p_\vec{w}(\vec{x}, y) =
+\]
+\vspace*{2cm}
+%% 101 3/32
+%% 111 9/32
+%% total 12/32 = 3/8
 
 \item Is there a difference between this model and the Naive Bayes
   model from Problem 1?

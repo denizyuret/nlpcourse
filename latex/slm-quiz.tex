@@ -116,7 +116,7 @@ estimate:
 
 Another way to take some probability mass from the observed n-grams
 and distribute it to unobserved n-grams is to subtract a fixed value
-$D$ from each non-zero n-gram count.
+$0<D<1$ from each non-zero n-gram count.
 
 \[ C'(abc) = \max(C(abc) - D, 0) \]
 
