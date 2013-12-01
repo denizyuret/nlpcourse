@@ -33,7 +33,7 @@ $n-1$ words $ab$,
 
 where $C(x)$ denotes the number of times $x$ has been
 observed in the training corpus.  This is the maximum likelihood (ML)
-estimate.  Consider the following corpus:
+estimate.  Consider the following training corpus:
 
 \begin{itemize}
 \item \sos\ the dog runs \eos
@@ -45,16 +45,19 @@ estimate.  Consider the following corpus:
   using this corpus as your training set.  Write down the parameters
   of this model.
 \vspace*{5cm}
-\item What is the perplexity of the following test corpus?  (Just
-  write down the correct expression, you do not need to calculate the
-  final number if you don't have a calculator).
+\item What is the perplexity of the following test corpus according to
+  the model you created in (a)?  (Include the \eos token in your
+  calculation, but not the \sos token.  Just write down the correct
+  expression, you do not need to calculate the final number if you
+  don't have a calculator).
 \begin{itemize}
 \item \sos\ the dog runs \eos
 \item \sos\ the cat walks \eos
 \item \sos\ the dog runs \eos
 \end{itemize}
 \vspace*{5cm}
-\item What is the perplexity of the sentence ``\sos\ the cat runs \eos''?
+\item What is the perplexity of the sentence ``\sos\ the cat runs
+  \eos'' according to the model you created in (a)?
 \end{enumerate}
 
 \newpage
@@ -72,10 +75,15 @@ times, we should pretend that it occurs $C'$ times where
 
 \[ C' = (C + 1) \frac{\vocab_{C+1}}{\vocab_{C}} \]
 
-where $\vocab_C$ is the number of items that occur $C$
-times.  SRILM uses Katz smoothing by default, which uses the
-Good-Turing estimate in its calculations.  Here we will use a simple
-example by Goodman to demonstrate the Good-Turing estimate.
+where $\vocab_C$ is the number of items that occur $C$ times.  If the
+total number of observations is $N$, the maximum likelihood
+probability estimate for a $C$ count item will be $C/N$, whereas the
+Good-Turing estimate will be $C'/N$.  Note that using $C'/N$ may lead
+to an unnormalized probability distribution (i.e. probabilities may
+not add to 1).  SRILM uses Katz smoothing by default, which uses the
+Good-Turing estimate in its calculations and fixes the normalization
+problem.  Here we will use a simple example by Goodman to demonstrate
+the simple Good-Turing estimate.
 
 Imagine you are fishing and there are 8 fish species: carp, perch,
 whitefish, trout, salmon, eel, catfish, and bass.  You have caught 10
@@ -103,7 +111,8 @@ estimate:
 
 \item Show that the Good-Turing estimate of the total probability of
   $C$-count items is equal to the ML estimate of the total probability
-  of $(C+1)$-count items.
+  of $(C+1)$-count items as long as $\vocab_C$ and $\vocab_{C+1}$ are
+  non-zero.
 \vspace*{4cm}
 
 \item According to Good-Turing, how likely is it that the next species

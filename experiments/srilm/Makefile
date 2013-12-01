@@ -16,6 +16,14 @@ brown-wsj01: ${BROWN} ${WSJ}
 	ngram-count -text ${BROWN} -lm - | \
 	ngram -lm - -ppl ${WSJ}
 
+wsj-wsj01: ${WSJ}
+	ngram-count -text ${WSJ} -lm - | \
+	ngram -lm - -ppl ${WSJ}
+
+brown-brown01: ${BROWN}
+	ngram-count -text ${BROWN} -lm - | \
+	ngram -lm - -ppl ${BROWN}
+
 # Use -debug 2 and calculate ppl, ppl1 from individual words
 # Note that unknown words are simply skipped
 
