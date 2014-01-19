@@ -1,3 +1,19 @@
+2014-01-19  Deniz Yuret  <dyuret@ku.edu.tr>
+
+	* Questions: 
+
+	Can we compute P(A) or P(AB) for words A, B directly looking at
+	the LM?  (AB means A and B appear in the same context, not side by
+	side)
+
+	Why is one algorithm n^3 the other n^5 for dep parsing?
+
+	what kind of pgm are hmm vs crf, pcfg vs crf etc?  directional vs
+	undirectional, why conditional vs joint?  isnt it what is given
+	and what is asked?  same relation as nbayes vs logreg?  why cant
+	we have arbitrary features in joint models, if they are eq to
+	joint maxent?  just interp problem?
+
 2013-08-23  Deniz Yuret  <dyuret@ku.edu.tr>
 
 	* loss: Comparing loss for nbayes, logistic, perceptron, svm, 0-1
