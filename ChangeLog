@@ -1,6 +1,11 @@
+2014-02-20  Deniz Yuret  <dyuret@ku.edu.tr>
+
+	* nlp.pdf: Add Siskind's Abigail system, Deb Roy and Luc Steels
+	systems.
+
 2014-01-19  Deniz Yuret  <dyuret@ku.edu.tr>
 
-	* Questions: 
+	* Questions:
 
 	Can we compute P(A) or P(AB) for words A, B directly looking at
 	the LM?  (AB means A and B appear in the same context, not side by
