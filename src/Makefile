@@ -26,3 +26,12 @@ wasp-1.0: ../download/wasp-1.0.tar.gz
 
 wasp-2.0alpha: ../download/wasp-2.0alpha.tar.gz
 	tar xvzf $<
+
+spf:
+	git clone https://bitbucket.org/yoavartzi/spf.git
+
+navi:
+	git clone https://bitbucket.org/yoavartzi/navi.git
+
+navi-corpus:
+	git clone https://bitbucket.org/yoavartzi/navi-corpus.git
