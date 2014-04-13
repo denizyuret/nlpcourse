@@ -1,7 +1,9 @@
 \documentclass[ignorenonframetext]{beamer}
+\setbeamertemplate{navigation symbols}{}
+\useoutertheme{infolines}
 
 \title{Learning to map strings to meaning}
-\subtitle{Comp 542 Natural Language Processing}
+%\subtitle{Comp 542 Natural Language Processing}
 \author{Deniz Yuret}
 %\date{Comp 542, Fall 2013}
 
@@ -11,6 +13,20 @@
 
 \begin{frame}
 \maketitle
+\end{frame}
+
+\begin{frame}\frametitle{From motion to narrative}
+\href{http://www.jstor.org/stable/pdfplus/10.2307/1416950.pdf}{Heider
+  and Simmel, 1944} is a seminal study that shows how human beings
+imbue with meaning (beliefs, desires, intentions) even the simplest
+geometric shapes and their motion.  A nice post about the work with
+the historical video is available at
+\href{http://blogs.scientificamerican.com/thoughtful-animal/2013/03/08/animating-anthropomorphism-giving-minds-to-geometric-shapes-video/}{Scientific
+  American}, click on the following for the video used in the study:
+\begin{center}
+\href{http://www.youtube.com/watch?v=VTNmLt7QX8E}{
+\includegraphics[width=.5\textwidth]{images/heider-simmel.png}}
+\end{center}
 \end{frame}
 
 \begin{frame}\frametitle{SHRDLU: mapping sentences to procedures}
@@ -38,8 +54,8 @@ and click on the following image for a demo.
 \\ {\sl ok. (does it) }
 \item grasp the pyramid. 
 \\ {\sl i don't understand which pyramid you mean. }
-\item find a block which is taller than the one you are holding and put it into the box. 
-\\ {\sl by ``it'', i assume you mean the block which is taller than the one i am holding.  ok. (does it) }
+%% \item find a block which is taller than the one you are holding and put it into the box. 
+%% \\ {\sl by ``it'', i assume you mean the block which is taller than the one i am holding.  ok. (does it) }
 \item what does the box contain? 
 \\ {\sl the blue pyramid and the blue block. }
 \item what is the pyramid supported by? 
@@ -107,7 +123,7 @@ and click on the following image for a demo.
 
 \begin{center}
 \href{http://start.csail.mit.edu}{
-\includegraphics[width=.7\textwidth]{images/katz-start.png}}
+\includegraphics[width=.6\textwidth]{images/katz-start.png}}
 \end{center}
 
 \end{frame}
@@ -177,28 +193,14 @@ Miriam presented a gift to Gabriela.
 \end{itemize}
 \end{frame}
 
-\begin{frame}\frametitle{WORDSEYE: mapping descriptions to scenes}
-
-\begin{itemize}
-\item Domain: visual scenes
-\item Input: user descriptions
-\item Output: generated scenes
-\item Learning: none, manually built
-\end{itemize}
-
-See \href{http://www1.cs.columbia.edu/~coyne/papers/wordseye_siggraph.pdf}{Coyne and Sproat, 2001}, click on image for more examples.
-
-\begin{columns}[c]
-\column{.4\textwidth}\scriptsize
-John uses the crossbow. He rides the horse by the store.
-The store is under the large willow. The small allosaurus is in front
-of the horse. The dinosaur faces John. A gigantic teacup is in front
-of the store. The dinosaur is in front of the horse. The gigantic
-mushroom is in the teacup. The castle is to the right of the store.
-\column{.6\textwidth}
-\href{http://www.wordseye.com}{
-\includegraphics[height=.6\textwidth]{images/coyne-wordseye.png}}
-\end{columns}
+\begin{frame}\frametitle{ABIGAIL: mapping animated line drawings to events}
+\href{https://engineering.purdue.edu/~qobi/}{Jeff Siskind} developed the ABIGAIL system which learns to map
+animated line drawings to high level events.
+See \href{ftp://publications.ai.mit.edu/ai-publications/pdf/AITR-1456.pdf}{Siskind, 1992}, \href{http://www2.denizyuret.com/bib/siskind/siskind1994grounding/siskind1995grounding.pdf}{1995}.
+\vspace{1em}
+\begin{center}
+\includegraphics[width=\textwidth]{images/siskind-abigail.png}
+\end{center}
 \end{frame}
 
 
@@ -217,7 +219,7 @@ and click on the following image for more information.
 
 \begin{center}
 \href{http://www.cs.utexas.edu/users/ml/geo.html}{
-\includegraphics[width=.7\textwidth]{images/us-states.png}}
+\includegraphics[width=.6\textwidth]{images/us-states.png}}
 \end{center}
 
 \end{frame}
@@ -287,7 +289,7 @@ Phrase Structure
 (\href{http://acl.ldc.upenn.edu/P/P96/P96-1008.pdf}{Miller et al. 1996})
 \begin{center}
 \href{http://acl.ldc.upenn.edu/P/P96/P96-1008.pdf}{
-\includegraphics[width=\textwidth]{images/miller-ps.png}}
+\includegraphics[width=.9\textwidth]{images/miller-ps.png}}
 \end{center}
 \end{frame}
 
@@ -323,7 +325,8 @@ Combinatory Categorial Grammar
 Recent work learns directly from question answer pairs without annotated logical forms
 (\href{http://aclweb.org/anthology/W/W10/W10-2903.pdf}{Clarke et al. 2010},
 \href{http://www.newdesign.aclweb.org/anthology-new/P/P11/P11-1149.pdf}{Goldwasser et al. 2011},
-\href{http://aclweb.org/anthology/J/J13/J13-2005.pdf}{Liang et al. 2013}).
+\href{http://aclweb.org/anthology/J/J13/J13-2005.pdf}{Liang et al. 2013},
+\href{http://aclweb.org/anthology//P/P11/P11-1060.pdf}{2011}).
 
 \begin{itemize}
 \item What is the capital of Texas?
@@ -335,6 +338,71 @@ Recent work learns directly from question answer pairs without annotated logical
 \item What states border Montana?
 \\ {\sl Idaho, North Dakota, South Dakota, Wyoming}
 \end{itemize}
+\end{frame}
+
+\begin{frame}\frametitle{TALKING HEADS: evolving word meanings}
+The
+\href{https://web.archive.org/web/20080430230359/http://talking-heads.csl.sony.fr/index.html}{Talking
+  Heads} project by \href{http://ai.vub.ac.be/members/steels}{Luc
+  Steels} demonstrated robots equipped with cameras looking at simple
+geometric shapes could evolve simple word meanings.  See
+\href{http://www.researchgate.net/publication/2493098_Bootstrapping_Grounded_Word_Semantics/file/9c9605159e2db023fc.pdf}{Steels
+  and Kaplan, 1999} or click on the following image for more
+information.
+\vspace{1em}
+\begin{center}
+\href{https://web.archive.org/web/20080430230359/http://talking-heads.csl.sony.fr/index.html}{
+\includegraphics[width=.5\textwidth]{images/steels-talking-heads.png}
+}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Evolving syntax}
+\href{http://www.lel.ed.ac.uk/~simon/}{Simon Kirby} demonstrates that
+syntax can arise out of the communicative dynamics of a population of
+simulated agents.  See
+(\href{http://goo.gl/wCTFRv}{Kirby, 2000}) 
+for details.
+\vspace{1em}
+\begin{center}
+\includegraphics[width=.7\textwidth]{images/kirby-syntax.png}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{WORDSEYE: mapping descriptions to scenes}
+\begin{itemize}
+\item Domain: visual scenes
+\item Input: user descriptions
+\item Output: generated scenes
+\item Learning: none, manually built
+\end{itemize}
+See \href{http://www1.cs.columbia.edu/~coyne/papers/wordseye_siggraph.pdf}{Coyne and Sproat, 2001}, click on image for more examples.
+\begin{columns}[c]
+\column{.4\textwidth}\scriptsize
+John uses the crossbow. He rides the horse by the store.
+The store is under the large willow. The small allosaurus is in front
+of the horse. The dinosaur faces John. A gigantic teacup is in front
+of the store. The dinosaur is in front of the horse. The gigantic
+mushroom is in the teacup. The castle is to the right of the store.
+\column{.6\textwidth}
+\href{http://www.wordseye.com}{
+\includegraphics[height=.6\textwidth]{images/coyne-wordseye.png}}
+\end{columns}
+\end{frame}
+
+\begin{frame}\frametitle{CELL: learning words for shapes and colors}
+\href{http://dkroy.media.mit.edu/}{Deb Roy} developed the
+\href{http://www.media.mit.edu/cogmac/projects/wdlearning.html}{CELL}
+(Cross-modal Early Lexical Learning) model that allowed a robot Toco
+learn speech labels for shapes and colors (\href{http://onlinelibrary.wiley.com/doi/10.1207/s15516709cog2601_4/pdf}{Roy and Pentland, 2002}).  Here are some
+\href{http://www.media.mit.edu/cogmac/projects.html}{other projects}
+from his group.
+\vspace{1em}
+\begin{center}
+\href{http://www.media.mit.edu/cogmac/projects/wdlearning.html}{
+\includegraphics[height=.5\textheight]{images/toco_large.jpg}
+}
+\end{center}
 \end{frame}
 
 \begin{frame}\frametitle{NAVIGATION: mapping instructions to actions}
@@ -408,12 +476,12 @@ Directions:
 \end{itemize}
 
 See \href{http://www.cs.utexas.edu/~ai-lab/pub-view.php?PubID=126770}{Chen and Mooney, 2008} 
-and \href{http://cs.stanford.edu/~pliang/papers}{Liang, Jordan, and Klein, 2009}
+and \href{http://aclweb.org/anthology/P/P09/P09-1011.pdf}{Liang, Jordan, and Klein, 2009}
 for more information, click on the image for a demo.
 
 \begin{center}
 \href{http://www.cs.utexas.edu/users/ml/clamp/sportscasting}{
-\includegraphics[height=.7\textheight]{images/chen-sportscast.png}}
+\includegraphics[height=.5\textheight]{images/chen-sportscast.png}}
 \end{center}
 \end{frame}
 
@@ -490,8 +558,85 @@ More vision demonstrations from the MIT Genesis Group:
 \end{center}
 \end{frame}
 
+\begin{frame}\frametitle{Learning to map video to language}
+Recent work focuses on learning, see
+(\href{http://aclweb.org/anthology/P/P13/P13-1006.pdf}{Yu and Siskind,
+  2013}, ACL-2013 best paper award), and associated
+\href{http://haonanyu.com/research/acl2013/}{code and data}.
+\vspace{1em}
 
-\begin{frame}\frametitle{Course plan}
+\begin{center}
+\href{http://haonanyu.com/research/acl2013/}{
+\includegraphics[height=.7\textheight]{images/siskind-video.png}}
+\end{center}
+\end{frame}
+
+
+\begin{frame}\frametitle{Learning to map language to regular expressions}
+
+\begin{itemize}
+\item Domain: regular expression patterns
+\item Input: natural language text query
+\item Output: regular expression
+\item Learning: text-regexp pairs from Amazon Turk
+\end{itemize}
+
+See \href{http://www.aclweb.org/anthology/N13-1103}{Kushman and
+  Barzilay, 2013} and associated
+\href{http://groups.csail.mit.edu/rbg/code/regexp/}{code and data}.
+
+\begin{center}
+\includegraphics[width=\textwidth]{images/kushman-regexp.png}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Learning to map language to file format parsers}
+
+\begin{itemize}
+\item Domain: input file formats
+\item Input: English specifications of file formats
+\item Output: C++ input parser
+\item Learning: noisy supervision based on parser success
+\end{itemize}
+
+See \href{http://www.aclweb.org/anthology/P13-1127}{Lei, Long,
+  Barzilay and Linard, 2013} and associated
+\href{http://groups.csail.mit.edu/rbg/code/nl2p/}{code and data}.
+
+\begin{center}
+\includegraphics[width=\textwidth]{images/lei-input-parser.png}
+\end{center}
+\end{frame}
+
+\begin{frame}\frametitle{Machine Learning
+    \href{http://link.springer.com/journal/10994/94/2/page/1}{special
+      issue} on learning semantics}
+\begin{itemize}
+\item Introduction to the special issue on learning semantics.
+Antoine Bordes, Léon Bottou, Ronan Collobert, Dan Roth, Jason Weston,
+Luke Zettlemoyer.
+\item From machine learning to machine reasoning.
+Léon Bottou.
+\item Learning perceptually grounded word meanings from unaligned parallel
+data.
+Stefanie Tellex, Pratiksha Thaker, Joshua Joseph, Nicholas Roy.
+\item Interactive relational reinforcement learning of concept semantics.
+Matthias Nickles, Achim Rettinger.
+\item Learning from natural instructions.
+Dan Goldwasser, Dan Roth.
+\item A semantic matching energy function for learning with multi-relational
+data.
+Antoine Bordes, Xavier Glorot, Jason Weston, Yoshua Bengio.
+\item Learning what is where from unlabeled images: joint localization and
+clustering of foreground objects.
+Ashok Chandrashekar, Lorenzo Torresani, Richard Granger.
+\item Learning semantic representations of objects and their parts.
+Grégoire Mesnil, Antoine Bordes, Jason Weston, Gal Chechik, Yoshua Bengio.
+\end{itemize}
+\end{frame}
+
+
+% \begin{frame}\frametitle{Course plan}
 Learn to map word strings to:
 \begin{itemize}
 \item probabilities
@@ -508,28 +653,31 @@ using:
 \item discriminative learning
 \item unsupervised learning
 \end{itemize}
-\end{frame}
+% \end{frame}
 
 People:
 
 RuleBased:
-Winograd
-Katz
++Winograd
++Katz
 
 SemParse:
-Barzilay
-Mooney
-Zettlemoyer
-Roth
-Jordan
++Barzilay
++Mooney
++Zettlemoyer
++Roth
++Jordan
 
 Lexical:
-Siskind
++Siskind
 Roy
 
 Emergence:
 Simon Kirby (http://www.lel.ed.ac.uk/~simon/)
 Luc Steels (http://ai.vub.ac.be/members/steels)
+
+Machine learning journal special issue on learning semantics:
+http://link.springer.com/journal/10994/94/2/page/1
 
 Introduction
 
