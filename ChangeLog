@@ -1,3 +1,26 @@
+2014-04-24    <dyuret@ku.edu.tr>
+
+	* generation: A good way to approach the sentence to lambda
+	expression mapping problem is to come up with a generative model
+	of lambda expressions first (i.e. a probabilistic grammar, a
+	probability distribution).  Analogous to building an LM for target
+	language in MT.  Once you have a machine that knows how to
+	generate good target expressions, then the input can be seen as
+	something that biases that machine slightly one way or the other
+	to guide it to a specific output.  This should be easier with a
+	well tuned generator than a bad one, i.e. much less information
+	(in number of bits) need to be added to the former to get the
+	right answer.  (Of course this can be used as an argument for all
+	generative models and discriminative modelers would probably
+	disagree.)  In any case instead of wrongly calling the first
+	lectures "mapping strings to probabilities", devote the first part
+	of the course to models of generating strings, trees, graphs
+	etc. which would be grammars (cfg, regexp), probabilistic grammars
+	(ngram, hmm) etc.
+
+	On the geo dataset, try to come up with a probability distribution
+	that maximizes the likelihood of unseen lambda expressions.
+
 2013-08-23  Deniz Yuret  <dyuret@ku.edu.tr>
 
 	* loss: Comparing loss for nbayes, logistic, perceptron, svm, 0-1
