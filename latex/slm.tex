@@ -1,0 +1,742 @@
+\documentclass[ignorenonframetext]{beamer}
+
+\newcommand{\vocab}{\mathcal{V}}
+\newcommand{\corpus}{\mathcal{C}}
+\newcommand{\pml}{p_{\textsc{ml}}}
+\newcommand{\sos}{$<$s$>$}
+\newcommand{\eos}{$<$/s$>$}
+
+\title{Learning to map strings to probabilities}
+\subtitle{Comp 542 Natural Language Processing}
+\author{Deniz Yuret}
+
+\hypersetup{colorlinks,urlcolor=red}
+
+\begin{document}
+
+\begin{frame}
+\maketitle
+\end{frame}
+
+
+TODO:
+- add section on smoothing methods and why they work?  proof of kneser ney?
+- can we do a bayesian one?  mackay-peto, teh pitman yor?
+- is there a conditional one?  rosenfeld has maxent, introduce?
+- is there a discriminative one?  does that make sense?
+- significance testing more detail
+- prepare quiz and homework
+
+LEARNING OUTCOMES:
+
+- Generative models
+- Maximum likelihood
+- Overfitting and regularization (applying a prior) by smoothing (discounting)
+- Entropy and perplexity (specific to slm)
+- Uncertainty in experiments
+
+
+Statistical Language Modeling
+
+Statistical language models assign probabilities to
+strings\footnote{Strings are sequences of tokens where each token
+  comes from a finite vocabulary.  We will usually consider strings
+  where each token is a word, number, or a punctuation mark.  Other
+  examples of strings include DNA sequences, stock market moves,
+  musical notes, etc.}  in a language\footnote{This is as opposed to
+  grammars which specify what strings are part of a language and what
+  strings are not.  So we can view statistical language models as soft
+  grammars.}.  In this section we will cover n-gram language models
+which specify a probability distribution over strings by specifying
+which tokens can follow a given $n-1$ token prefix with what
+probability.  We will also introduce the concepts of generative
+models, maximum likelihood, entropy/perplexity, and significance
+testing.
+
+Why do we need them?
+
+Noisy channel models: X --> Y
+X is a string we'd like to know.
+Y is what we get (OCR, Speech, Translation)
+P(X|Y) ~ P(Y|X) P(X)
+The P(X) comes from the LM
+
+
+Generative Models
+
+In probability and statistics, a generative model is a model for
+randomly generating observable data, typically given some hidden
+parameters.  An n-gram language model (also confusingly known as a
+Markov chain of order n-1) is a model where the choice of each token
+depends on the past n-1 tokens.
+
+It is sometimes convenient to think of a generative model as a
+probabilistic program that can generate artificial data that looks
+like our observations.  We will call such programs generative
+procedures.  Here is the generative procedure for an n-gram language
+model:
+
+w[0] = <s>  // a special symbol denoting the start of the string
+for (i = 0; w[i] != </s>; i++) {
+  let p = a probability distribution over V+</s> conditional on the
+  last n-1 tokens up to and including w[i] (if there aren't n-1 tokens
+  yet shorten the context accordingly)
+  pick w[i+1] from V+</s> with probability p
+}
+
+The procedure deterministically starts every string with the token
+<s>.  It then starts generating tokens from the set of tokens in the
+vocabulary and possibly the special end-of-string token </s>.  It uses
+categorical distributions\footnote{A categorical distribution is a
+  generalization of Bernoulli distribution.  Bernoulli distribution
+  specifies the probabilities of two possible outcomes, categorical
+  distribution specifies the probabilities of |V| possible outcomes.}
+over V+</s> that depend on the last n-1 tokens generated.
+
+Note that the procedure uses a different probability distribution for
+each of the |V|^(n-1) different prefixes.  Each of these distributions
+specify |V+</s>| probabilities.  These all must be supplied to the
+program as parameters before it can work.  Once we have these O(V^N)
+parameters we can answer questions such as:
+
+- What is the probability of this program generating a certain string
+- What tokens are most likely to follow a given string
+- What are the most likely alternatives in the middle of a string
+- What tokens are most likely to precede a given string
+
+Review product rule, sum rule:
+
+p(a or b) = p(a) + p(b) if a, b disjoint (-p(a and b) otherwise)
+p(a and b) = p(a) p(b | a) = p(b) p(a | b)  always
+// cox has product rule and negation rule, no sum rule?
+
+
+
+Maximum Likelihood
+
+If we have parameters we can assign probabilities.  How do we get
+parameters?  From training data.
+
+If a context c is observed n times and it is followed by token w k
+times, what is the maximum likelihood estimate for p(w|c)?
+// likelihood is a function of q!
+
+Find q such that p(data|q) is maximized.
+
+data = sequence of k w's and n-k non-w's
+
+p(data|q) = q^k (1-q)^(n-k)
+
+logp(data|q) = k log(q) + (n-k) log(1-q)
+
+dlogp/dq = k / q - (n-k) / (1-q) = 0
+
+k (1-q)  = (n-k) q
+k - kq = nq - kq
+q = k/n
+
+In general the ML estimate gives probabilities proportional to
+observation frequencies.
+
+Q: Calculate the ML estimate for gaussian mean for fixed variance.
+
+
+
+Evaluation
+
+So given parameters we can assign probabilities to every string using
+the generative model.
+
+Given training data we can generate parameters using maximum
+likelihood.
+
+ML is not the only way to generate parameters.  There are other
+methods.  How do we compare them?  
+
+We need an unseen test set and an evaluation function.
+
+We compare log likelihood on the test set:
+
+eval1 = sum_i log pi
+
+Related measures:
+
+entropy H(p) = E_p(-logp) = -sum_w pw log pw 
+// number of bits in ideal compression
+// arithmetic average of log(1/p)
+
+cross-entropy H(p,q) = E_p(-logq) = -sum_w pw log qw  
+// what would happen if we used q instead of perfect p
+
+KL distance D(p,q) = sum_w pw log pw - sum_w pw log qw  
+// cost of using q instead of p. = H(p,q) - H(p)
+
+perplexity Perp(p) = 2^H(p)
+// give examples of uniform distribution
+// geometric average of 1/p
+
+Q: is it possible to beat ML on the training set?
+
+
+Significance testing
+
+If we have more than one way of estimating parameters, assigning
+probabilities how can we be sure that one is better than the other?
+
+Answer: try lots of times (cross validation)
+compute standard error
+
+Reasons for variation: 
+Given test set and training set it is all deterministic (may not be)
+Training set randomness (same algorithm gives different models)
+Test set randomness (same model gives different test set results)
+
+Simple example: standard error of a bernoulli parameter
+We estimate q = k/n, how good is this estimate?
+Related question: if real parameter were p, and we tried this lots of
+times, how spread out would q be?
+
+q ~ sum of n bernoulli variables
+p(1)=p, p(0)=1-p, E(x)=p, E(x^2)=p, Var(x)=E(x^2) - E(x)^2 = p-p*p 
+E(q) = p
+Var(nq) = n Var(x) = np(1-p)
+Var(Cx) = C^2 Var(x)
+Var(q) = p(1-p)/n < 1/4n
+Std(q) < 1/(2 sqrt(n))
+
+Example: p=1/2
+n=100 => Std(q) < 1/20 = 5\%  // i.e [45%,55%] is the one stderr window
+n=10000 => Std(q) < 1/200 = .5\% // i.e. [49.5%,50.5%]
+
+Question: if you have two values and their standard errors, when can
+you say one is better than the other?
+
+Read student's t-test from wikipedia.
+
+Can't we do back of the envelope?
+
+Need to define paired / unpaired, equal / unequal variance, p-values
+etc.
+
+p-value is the area under the curve of the test statistic for values
+that are more extreme than the observed.
+
+Recommended method:
+
+Run 10-fold cross validation.
+Test both algorithms on same folds.
+Plot standard error bars.
+We have 10 paired values that can be used in dependent t-test for
+paired samples.
+
+We have two things to compute stderr with: test set size and
+cross-validation fold differences.  Test set size is probably not
+easily applicable for anything except correct/incorrect?  Fold
+differences are always ok.
+
+David Barber has a Bayesian test:
+http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.11.293&rep=rep1&type=pdf
+
+StackExchange recommends McNemar test for a single run:
+http://stats.stackexchange.com/questions/26271/comparing-two-classifier-accuracy-results-for-statistical-significance-with-t-te
+http://en.wikipedia.org/wiki/McNemar%27s_test
+
+Chapter 5.3 in manning and schutze covers significance testing.
+
+
+
+Overfitting and Regularization
+
+ML models overfit, they give too much probability to data they have
+seen and too little to data they have not seen.  In case of SLM, if we
+have observed 2 distinct words following an n-1-gram all the other
+words get zero probability, which is unreasonable and will do poorly
+on the test set.
+
+Q: what happens to log-likelihood and perplexity when an unseen word
+appears with the ML model?
+
+
+** Backoff vs Interpolated
+
+       N-gram models try to estimate the probability of a word z in the context of the  previous  n-1  words
+       (a_), i.e., Pr(z|a_).  We will denote this conditional probability using p(a_z) for convenience.  One
+       way to estimate p(a_z) is to look at the number of times word z has followed the previous  n-1  words
+       (a_):
+
+       (1)  p(a_z) = c(a_z)/c(a_)
+
+\begin{frame}\frametitle{Maximum Likelihood}
+\begin{equation}
+\pml(c|ab) = \frac{C(abc)}{C(ab)}
+\end{equation}
+\end{frame}
+
+       This  is  known  as  the  maximum likelihood (ML) estimate.  Unfortunately it does not work very well
+       because it assigns zero probability to N-grams that have not been observed in the training data.   To
+       avoid  the zero probabilities, we take some probability mass from the observed N-grams and distribute
+       it to unobserved N-grams.  Such redistribution is known as smoothing or discounting.
+
+
+Discount methods: instead of p_ML = Cw/C use:
+- Additive: (Cw+A)/(C+VA)
+- Absolute discounting: (Cw-A)/C
+- Jelinek-Mercer: \lambda * (Cw/C)
+- MacKay-Peto (Dirichlet): Cw/(C+A)
+- Good-Turing: (Cw+1)/C * V(Cw+1)/V(Cw)
+- Kneser-Ney: (Cw-A)/C but with modified lower order
+
+\begin{frame}\frametitle{Discount (Smoothing) Methods}
+\begin{eqnarray*}
+p(c|ab) & \propto & C(abc) + A \\
+p(c|ab) & \propto & C(abc) - D \\
+p(c|ab) & \propto & \lambda C(abc) \\
+p(c|ab) & \propto & C(abc) / (C(ab) + A) \\
+p(c|ab) & \propto & (C(abc)+1)\vocab_{C+1}/\vocab_{C}
+\end{eqnarray*}
+\end{frame}
+
+       Most existing smoothing algorithms can be described by the following equation:
+
+       (2)  p(a_z) = (c(a_z) > 0) ? f(a_z) : bow(a_) p(_z)   ; backoff
+
+       (4)  p(a_z) = g(a_z) + bow(a_) p(_z)   ; interpolated
+
+       If the N-gram a_z has been observed in the training data, we use the distribution f(a_z).   Typically
+       f(a_z)  is  discounted to be less than the ML estimate so we have some leftover probability for the z
+       words unseen in the context (a_).  Different algorithms mainly differ on how  they  discount  the  ML
+       estimate to get f(a_z).
+
+       If  the  N-gram  a_z  has not been observed in the training data, we use the lower order distribution
+       p(_z).  If the context has never been observed (c(a_) = 0), we can use the lower  order  distribution
+       directly  (bow(a_) = 1).  Otherwise we need to compute a backoff weight (bow) to make sure probabili-
+       ties are normalized:
+
+            Sum_z p(a_z) = 1
+
+
+** Show normalization calculation for some of them:
+
+Normalization for Additive (there are no zero counts, so no backoff):
+    
+   p(a_z)  = (c(a_z) + A) / (c(a_) + AV)  ; additive smoothing
+   Sum_Z p(a_z) = Sum_Z c(a_z) / (c(a_) + AV) + Sum_Z A / (c(a_) + AV)
+                = 1
+
+\begin{frame}\frametitle{Additive Smoothing}
+\begin{eqnarray*}
+p(c|ab) &=& \frac{C(abc) + A}{C(ab) + A\vocab} \\
+\sum_{c\in\vocab} p(c|ab) &=& \sum_{c\in\vocab} \frac{C(abc)}{C(ab) +
+  A\vocab} + \sum_{c\in\vocab} \frac{A}{C(ab) + A\vocab} \\
+  &=& \frac{C(ab)}{C(ab) + A\vocab} + \frac{A\vocab}{C(ab) + A\vocab}\\
+  &=& 1
+\end{eqnarray*}
+\end{frame}
+
+
+Normalization for Jelinek Mercer:
+
+   p(a_z)  = g(a_z) + bow(a_) p(_z)   ; Eqn.4 - interpolated model
+   g(a_z)  = D c(a_z) / c(a_)         ; Jelinek Mercer
+   bow(a_) = 1 - Sum_Z1 g(a_z)
+           = 1 - Sum_Z1 D c(a_z) / c(a_)
+           = 1 - D
+
+\begin{frame}\frametitle{Jelinek-Mercer (Deleted Interpolation)}
+\begin{eqnarray*}
+p(c|ab) &=& (1-\gamma(ab)) \frac{C(abc)}{C(ab)} + \gamma(ab) p(c|b) \\
+\sum_{c\in\vocab} p(c|ab) &=& (1-\gamma(ab)) \sum_{c\in\vocab}
+\frac{C(abc)}{C(ab)} + \gamma(ab) \sum_{c\in\vocab} p(c|b) \\
+&=& (1-\gamma(ab)) (1) + \gamma(ab) (1) \\
+&=& 1
+\end{eqnarray*}
+\end{frame}
+
+BOW for interpolated absolute discounting:
+
+   p(a_z)  = g(a_z) + bow(a_) p(_z)   ; Eqn.4 - interpolated model
+   g(a_z)  = max(0, c(a_z) - D) / c(a_) ; absolute discounting
+   bow(a_) = 1 - Sum_Z1 g(a_z)        ; Eqn.5
+           = 1 - Sum_Z1 (c(a_z) - D) / c(a_)
+           = 1 - Sum_Z1 c(a_z)/c(a_) + Sum_Z1 D/c(a_)
+           = D n(a_*) / c(a_)
+
+              The suggested discount factor is:
+
+                   D = n1 / (n1 + 2*n2)
+
+\begin{frame}\frametitle{Absolute Discounting}
+\begin{eqnarray*}
+f(c|ab) &=& \frac{\max(0, C(abc) - D)}{C(ab)} \\
+p(c|ab) &=& f(c|ab) + \gamma(ab) p(c|b) \\
+\sum_{c\in\vocab} p(c|ab) &=& \frac{\sum_{c\in\vocab} \max(0,
+  C(abc)-D)}{C(ab)} + \gamma(ab) \sum_{c\in\vocab} p(c|b) \\
+1 &=& \frac{\sum_{c\in\vocab_{+}} C(abc)-D}{C(ab)} + \gamma(ab)
+(1) \\ 
+\gamma(ab) &=& 1 - \frac{\sum_{c\in\vocab_{+}} C(abc)}{C(ab)} +
+\frac{\sum_{c\in\vocab_{+}} D}{C(ab)} \\
+&=& \frac{|\vocab_{+}| D}{C(ab)}
+\end{eqnarray*}
+\end{frame}
+
+BOW for Interpolated Dirichlet:
+
+   p(a_z)  = g(a_z) + bow(a_) p(_z)   ; Eqn.4 - interpolated model
+   g(a_z)  = c(a_z) / (c(a_) + A)         ; Dirichlet
+   bow(a_) = 1 - Sum_Z1 g(a_z)
+           = 1 - Sum_Z1 c(a_z) / (c(a_) + A)
+           = 1 - c(a_) / (c(a_) + A)
+           = A / (c(a_) + A)
+
+
+\begin{frame}\frametitle{Dirichlet?}
+\begin{eqnarray*}
+f(c|ab) &=& \frac{C(abc)}{C(ab) + A} \\
+p(c|ab) &=& f(c|ab) + \gamma(ab) p(c|b) \\
+\sum_{c\in\vocab} p(c|ab) &=& \frac{\sum_{c\in\vocab} C(abc)}{C(ab) + A} + \gamma(ab) \sum_{c\in\vocab} p(c|b) \\
+1 &=& \frac{C(ab)}{C(ab) + A} + \gamma(ab) (1) \\ 
+\gamma(ab) &=& 1 - \frac{C(ab)}{C(ab) + A} \\
+&=& \frac{A}{C(ab) + A} \\
+\end{eqnarray*}
+\end{frame}
+
+       General Normalization:
+
+       Let Z be the set of all words in the vocabulary, Z0 be the set of all words with c(a_z) = 0,  and  Z1
+       be the set of all words with c(a_z) > 0.  Given f(a_z), bow(a_) can be determined as follows:
+
+       (3)  Sum_Z  p(a_z) = 1
+            Sum_Z1 f(a_z) + Sum_Z0 bow(a_) p(_z) = 1
+            bow(a_) = (1 - Sum_Z1 f(a_z)) / Sum_Z0 p(_z)
+                    = (1 - Sum_Z1 f(a_z)) / (1 - Sum_Z1 p(_z))
+                    = (1 - Sum_Z1 f(a_z)) / (1 - Sum_Z1 f(_z))
+
+\begin{frame}\frametitle{Back-off vs. Interpolated}
+\begin{eqnarray*}
+p(c|ab) &=& (C(abc) > 0) ? f(c|ab) : \gamma(ab) p(c|b) \\
+p(c|ab) &=& f(c|ab) + \gamma(ab) p(c|b)
+\end{eqnarray*}
+\end{frame}
+
+\begin{frame}\frametitle{Normalization in back-off models}
+\begin{eqnarray*}
+p(c|ab) &=& (C(abc) > 0) ? f(c|ab) : \gamma(ab) p(c|b) \\
+\sum_{c\in\vocab} p(c|ab) &=& \sum_{c\in\vocab_{+}} f(c|ab) +
+\gamma(ab) \sum_{c\in\vocab_{0}} p(c|b) \\
+\gamma(ab) &=& \frac{1 - \sum_{c\in\vocab_{+}}
+  f(c|ab)}{\sum_{c\in\vocab_{0}} p(c|b)} \\
+&=& \frac{1 - \sum_{c\in\vocab_{+}} f(c|ab)}{1 - \sum_{c\in\vocab_{+}}
+  p(c|b)} \\
+&=& \frac{1 - \sum_{c\in\vocab_{+}} f(c|ab)}{1 - \sum_{c\in\vocab_{+}}
+  f(c|b)} \\
+\end{eqnarray*}
+\end{frame}
+
+       Smoothing  is  generally  done in one of two ways.  The backoff models compute p(a_z) based on the N-
+       gram counts c(a_z) when c(a_z) > 0, and only consider lower order  counts  c(_z)  when  c(a_z)  =  0.
+       Interpolated  models  take  lower order counts into account when c(a_z) > 0 as well.  A common way to
+       express an interpolated model is:
+
+       (4)  p(a_z) = g(a_z) + bow(a_) p(_z)
+
+       Where g(a_z) = 0 when c(a_z) = 0 and it is discounted to be less than the ML estimate when c(a_z) > 0
+       to  reserve some probability mass for the unseen z words.  Given g(a_z), bow(a_) can be determined as
+       follows:
+
+       (5)  Sum_Z  p(a_z) = 1
+            Sum_Z1 g(a_z) + Sum_Z bow(a_) p(_z) = 1
+            bow(a_) = 1 - Sum_Z1 g(a_z)
+
+\begin{frame}\frametitle{Normalization in interpolated models}
+\begin{eqnarray*}
+p(c|ab) &=& f(c|ab) + \gamma(ab) p(c|b) \\
+\sum_{c\in\vocab} p(c|ab) &=& \sum_{c\in\vocab_{+}} f(c|ab) +
+\gamma(ab) \sum_{c\in\vocab} p(c|b) \\
+\gamma(ab) &=& 1 - \sum_{c\in\vocab_{+}} f(c|ab)
+\end{eqnarray*}
+\end{frame}
+
+** ARPA Format:
+
+       An interpolated model can also be expressed in the form of equation (2), which is the way it is  rep-
+       resented in the ARPA format model files in SRILM:
+
+       (6)  f(a_z) = g(a_z) + bow(a_) p(_z)
+            p(a_z) = (c(a_z) > 0) ? f(a_z) : bow(a_) p(_z)
+
+       Most  algorithms  in  SRILM  have  both backoff and interpolated versions.  Empirically, interpolated
+       algorithms usually do better than the backoff ones, and Kneser-Ney does better than others.
+
+\begin{frame}[fragile]\frametitle{ARPA format}
+\scriptsize
+\begin{verbatim}
+\data\
+ngram 1=49208
+ngram 2=402095
+ngram 3=105292
+
+\1-grams:
+...
+-5.242319	approves	-0.1590842
+-5.388447	approving	-0.2031582
+-5.610296	approximate	-0.1472198
+...
+\2-grams:
+...
+-2.774657	approval but
+-0.8375884	approval by	-0.1785298
+-2.774657	approval came
+...
+\3-grams:
+...
+-1.121324	approval , the
+-0.806105	approval , which
+-1.121324	approval , would
+\end{verbatim}
+\end{frame}
+
+\begin{frame}\frametitle{Interpolated models in ARPA format}
+\begin{eqnarray*}
+g(c|ab) &=& f(c|ab) + \gamma(ab) p(c|b) \\
+p(c|ab) &=& (C(abc) > 0) ? g(c|ab) : \gamma(ab) p(c|b)
+\end{eqnarray*}
+\end{frame}
+
+** Motivation for discount methods:
+
+All arithmetic operations: add (additive), subtract (abs discount),
+multiply (jelinek, gt) nominator, add to denominator (dirichlet).  We
+can use absolute discount as a regularization method with the single
+discount parameter controlling the amount of regularization.  Or maybe
+Jelinek Mercer or additive is a better example.  Dirichlet to
+illustrate probabilistic.
+
+** Motivation for Good-Turing
+
+Good-Turing proved that the total prob for future unseen words is the
+current frequency of one-counts.
+
+In general they suggest that the total prob for n-count words should
+be set to the current frequency of (n+1)-count words.
+
+This can be accomplished by modifying the counts:
+
+Cw' = (Cw+1) V(Cw+1)/V(Cw)  where V(Cw) is the number of words with Cw-count
+
+Notation: C is the corpus (or corpus count), V is the vocabulary (or
+vocab count).  Cw is the count of w in corpus.  Vn is the number of
+words with count=n.
+
+Goodman example:
+
+Imagine you are fishing
+
+There are 8 species: carp, perch, whitefish, trout, salmon, eel,
+catfish, bass
+
+You have caught 10 carp, 3 perch, 2 whitefish, 1 trout, 1 salmon, 1
+eel
+
+How likely is it that next species is new (I.e. catfish or bass) 
+3/18
+
+Assuming so, how likely is it that next species is trout?  
+Less than 1/18
+
+
+In this example: 
+C=18: sum of Cc=10, Cp=3, Cw=2, Ct=1, Cs=1, Ce=1, Ccat=0, Cb=0.
+V=8: sum of V0=2, V1=3, V2=1, V3=1, V10=1.
+
+So all zero counts should share V1/C equally, they get (1/C)(V1/V0)
+=(1/18)(3/2)=1/12 => total=2/12
+
+Each one count word gets: (2/C)(V2/V1), total=(2/C)V2
+This is what the total ML prob was for two counts!
+=(2/18)(1/3)=1/27 => total=1/9
+
+Each two count word gets: (3/C)(V3/V2), total=(3/C)V3
+This is what the total ML prob was for three counts!
+=(3/18)(1/1)=1/6 => total=1/6
+
+Each three count word gets: (4/C)(V4/V3), total=(4/C)V4
+Problem: V4=0, ooops.
+So counts need to be smoothed or need a cut-off.  See Chen&Goodman,
+Katz smoothing for details.
+
+\begin{frame}\frametitle{Good-Turing}
+\begin{eqnarray*}
+r_{GT} &=& (r+1)\frac{\vocab_{r+1}}{\vocab_{r}} \\
+|\corpus| &=& \sum_{r=0}^\infty r\vocab_r \\
+&=?& \sum_{r=0}^\infty r_{GT}\vocab_r \\
+&=& \sum_{r=0}^\infty (r+1)\vocab_{r+1} \\
+&=& \sum_{r=1}^\infty r \vocab_r  \mbox{  this works if  } \forall r : \vocab_r > 0
+\end{eqnarray*}
+\end{frame}
+
+\begin{frame}\frametitle{Goodman example}
+\begin{eqnarray*}
+\vocab &=& \{ \mbox{carp, perch, whitefish, trout, salmon, eel,
+  catfish, bass} \} \\
+\corpus &=& [ \mbox{carp x 10, perch x 3, whitefish x 2, trout, salmon, eel} ] \\
+|\corpus| &=& 18, |\vocab| = 8, \vocab_0=2, \vocab_1=3, \vocab_2=1, \vocab_3=1,
+\vocab_{10}=1 \\
+\end{eqnarray*}
+\begin{eqnarray*}
+p_{ML}(\mbox{trout}) &=& 1/18 \\
+p_{GT}(\mbox{trout}) &=& \frac{2 \vocab_2 / \vocab_1}{|\corpus|} = 1/27 \\
+p_{ML}(\mbox{bass}) &=& 0 \\
+p_{GT}(\mbox{bass}) &=& \frac{ \vocab_1 / \vocab_0}{|\corpus|} = 1/12 \\
+p_{ML}(\mbox{perch}) &=& 1/6 \\
+p_{GT}(\mbox{perch}) &=& 0!!! \\
+\end{eqnarray*}
+
+\end{frame}
+
+\begin{frame}\frametitle{Katz}
+\begin{columns}[t]
+\column{.5\textwidth}
+\begin{eqnarray*}
+r^* &=& r \mbox{ , } \forall r>k \\
+C &=& \sum_{r=0}^{\infty} r\vocab_r = \sum_{r=0}^{\infty} r^*\vocab_r \\
+r-r^* &=& \mu (r-r_{GT}) \\
+0^* \vocab_0 &=& \vocab_1 = \sum_{r=1}^k (r-r^*)\vocab_r \\
+&=& \sum_{r=1}^k \mu (r-r_{GT})\vocab_r \\
+&=& \mu \sum_{r=1}^k r\vocab_r - (r+1)\vocab_{r+1} \\
+&=& \mu (\vocab_1 - (k+1)\vocab_{k+1}) \\
+\end{eqnarray*}
+\column{.5\textwidth}
+\begin{eqnarray*}
+\mu &=& \frac{\vocab_1}{\vocab_1 - (k+1)\vocab_{k+1}} \\
+r^* &=& r - \mu r + \mu r_{GT} \\
+d_r &=& r^*/r \\
+&=& 1 - \mu + \mu r_{GT}/r \\
+&=& \frac{r_{GT}/r - (k+1)\vocab_{k+1}/\vocab_1}{1 - (k+1)\vocab_{k+1}/\vocab_1}
+\end{eqnarray*}
+\end{columns}
+\end{frame}
+
+** Motivation for Kneser-Ney
+
+       (2)  p(a_z) = (c(a_z) > 0) ? f(a_z) : bow(a_) p(_z)   ; backoff
+       (4)  p(a_z) = g(a_z) + bow(a_) p(_z)   ; interpolate
+
+We use p(_z) only when c(a_z)=0.  But we calculate it like we use it
+all the time.  How can we use the fact that c(a_z) was 0?
+
+Bigram example ``San Francisco''.  Say Francisco only appears after San.
+
+c(sf) = large
+c(xf) = 0 for x != s
+
+p(xf) should be very close to 0.
+
+p(xf) = bow(x_) p(f)
+
+p(f) is high, which will make p(xf) high!
+
+We should have estimated p(f) as low since it is only going to be used
+if not after following san.
+
+So set p(f) to V(*f), i.e. number of different words it follows,
+rather than C(*f)=C(f), i.e. number of times it was observed.
+
+To derive the formula:
+(i) use interpolated form (easier and better)
+       (4)  p(a_z) = g(a_z) + bow(a_) p(_z)   ; interpolate
+
+(ii) satisfy the marginal constraints:
+
+  sum_a p(ab) = Cb / C = p_ML(b)   ;; where p is the KN estimate
+
+= sum_a p(b|a) p(a)   ;; use Ca/C for p(a)
+
+= sum_a p(b|a) Ca/C = Cb/C
+
+Cb = sum_a Ca p(b|a) 
+
+   = sum_a Ca (max(0, Cab - D)/Ca + bow(a) p(b))
+
+bow(a) = V(a_) D / Ca
+
+Cb = sum_a Ca (max(0, Cab - D)/Ca + Va_ (D/Ca) p(b))
+   = sum_a max(0, Cab - D) + sum_a Va_ D p(b)
+
+p(b) = (Cb - sum_a max(0, Cab - D)) / sum_a Va_ D
+
+sum_a max(0, Cab - D) = Cb - V_b D
+
+p(b) = V_b D / sum_a Va_ D = V_b / sum_a Va_ = V_b / V
+
+\begin{frame}\frametitle{Kneser-Ney}
+\begin{eqnarray*}
+\pml(b) &=& C(b)/C = \sum_a p(ab) \\
+&=& \sum_a p(a) p(b|a) \\
+&\approx& \sum_a \frac{C(a)}{C} \left( \frac{\max(C(ab) - D, 0)}{C(a)}
++ \frac{p(b) \vocab_{a*} D}{C(a)} \right) \\
+C(b) &=& \sum_{a\in\vocab_{*b}} C(ab) - \sum_{a\in\vocab_{*b}} D +
+p(b) D \sum_{a\in\vocab} \vocab_{a*} \\
+&=& C(b) - \vocab_{*b} D + p(b) D \vocab_{**} \\
+p(b) &=& \vocab_{*b} / \vocab_{**} \\
+\end{eqnarray*}
+\end{frame}
+
+** BOW calculation for Kneser-Ney
+
+-kndiscount and -ukndiscount
+       Kneser-Ney discounting.  This is similar to absolute discounting in that the discounted proba-
+       bility is computed by subtracting a constant D from the N-gram count.  The options -kndiscount
+       and -ukndiscount differ as to how this constant is computed.
+       The  main idea of Kneser-Ney is to use a modified probability estimate for lower order N-grams
+       used for backoff.  Specifically, the modified probability for a lower order N-gram is taken to
+       be proportional to the number of unique words that precede it in the training data.  With dis-
+       counting and normalization we get:
+
+            f(a_z) = (c(a_z) - D0) / c(a_)     ;; for highest order N-grams
+            f(_z)  = (n(*_z) - D1) / n(*_*)    ;; for lower order N-grams
+
+       where the n(*_z) notation represents the number of unique N-grams that match a  given  pattern
+       with  (*) used as a wildcard for a single word.  D0 and D1 represent two different discounting
+       constants, as each N-gram order uses a different discounting constant.  The  resulting  condi-
+       tional probability and the backoff weight is calculated as given in equations (2) and (3):
+
+            p(a_z)  = (c(a_z) > 0) ? f(a_z) : bow(a_) p(_z)     ; Eqn.2
+            bow(a_) = (1 - Sum_Z1 f(a_z)) / (1 - Sum_Z1 f(_z))  ; Eqn.3
+
+       The  option  -interpolate  is  used  to  create  the  interpolated versions of -kndiscount and
+       -ukndiscount.  In this case we have:
+
+            p(a_z) = g(a_z) + bow(a_) p(_z)  ; Eqn.4
+
+       Let Z1 be the set {z: c(a_z) > 0}.  For highest order N-grams we have:
+
+            g(a_z)  = max(0, c(a_z) - D) / c(a_)
+            bow(a_) = 1 - Sum_Z1 g(a_z)
+                    = 1 - Sum_Z1 c(a_z) / c(a_) + Sum_Z1 D / c(a_)
+                    = D n(a_*) / c(a_)
+
+       Let Z2 be the set {z: n(*_z) > 0}.  For lower order N-grams we have:
+
+            g(_z)  = max(0, n(*_z) - D) / n(*_*)
+            bow(_) = 1 - Sum_Z2 g(_z)
+                   = 1 - Sum_Z2 n(*_z) / n(*_*) + Sum_Z2 D / n(*_*)
+                   = D n(_*) / n(*_*)
+
+       The original Kneser-Ney discounting (-ukndiscount) uses one discounting constant for  each  N-
+       gram order.  These constants are estimated as
+
+            D = n1 / (n1 + 2*n2)
+
+       where n1 and n2 are the total number of N-grams with exactly one and two counts, respectively.
+       Chen and Goodman's modified Kneser-Ney discounting (-kndiscount) uses three  discounting  con-
+       stants  for  each  N-gram order, one for one-count N-grams, one for two-count N-grams, and one
+       for three-plus-count N-grams:
+
+            Y   = n1/(n1+2*n2)
+            D1  = 1 - 2Y(n2/n1)
+            D2  = 2 - 3Y(n3/n2)
+            D3+ = 3 - 4Y(n4/n3)
+
+
+
+\end{document}

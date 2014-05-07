@@ -1,0 +1,248 @@
+% BUGS:
+% Should specify denominator in Good-Turing
+% Should specify 0<D<1 in Absolute discount
+
+\documentclass[a4paper]{article}
+\usepackage{fullpage}
+\usepackage{enumerate}
+\usepackage{parskip}
+
+\newcommand{\vocab}{\mathcal{V}}
+\newcommand{\pml}{p_{\textsc{ml}}}
+\newcommand{\sos}{$<$s$>$}
+\newcommand{\eos}{$<$/s$>$}
+
+\title{Comp542 Quiz 1: Ngram Language Models}
+\author{\\ \\Your Name: \underline{\hspace*{10cm}}}
+\begin{document}
+\maketitle
+\newpage
+\section{Maximum likelihood}
+
+N-gram models are the most commonly used language modeling tools.
+They estimate the probability of each word using the context made up
+of the previous $n-1$ words.  Let $abc$ represent an n-gram where $a$
+is the first word, $c$ is the last word, and $b$ represents {\bf {\em
+    zero or more words}} in between.  One way to estimate $p(c|ab)$ is
+to look at the number of times word $c$ has followed the previous
+$n-1$ words $ab$,
+
+\begin{equation}
+\pml(c|ab) = \frac{C(abc)}{C(ab)}
+\end{equation}
+
+where $C(x)$ denotes the number of times $x$ has been
+observed in the training corpus.  This is the maximum likelihood (ML)
+estimate.  Consider the following training corpus:
+
+\begin{itemize}
+\item \sos\ the dog runs \eos
+\item \sos\ the cat walks \eos
+\end{itemize}
+
+\begin{enumerate}[(a)]
+\item Compute the maximum likelihood trigram ($n=3$) language model
+  using this corpus as your training set.  Write down the parameters
+  of this model.
+\vspace*{5cm}
+\item What is the perplexity of the following test corpus according to
+  the model you created in (a)?  (Include the \eos token in your
+  calculation, but not the \sos token.  Just write down the correct
+  expression, you do not need to calculate the final number if you
+  don't have a calculator).
+\begin{itemize}
+\item \sos\ the dog runs \eos
+\item \sos\ the cat walks \eos
+\item \sos\ the dog runs \eos
+\end{itemize}
+\vspace*{5cm}
+\item What is the perplexity of the sentence ``\sos\ the cat runs
+  \eos'' according to the model you created in (a)?
+\end{enumerate}
+
+\newpage
+\section{Good-Turing}
+
+Unfortunately maximum likelihood does not work very well because it
+assigns zero probability to n-grams that have not been observed in the
+training corpus.  To avoid the zero probabilities, we take some
+probability mass from the observed n-grams and distribute it to
+unobserved n-grams.  Such redistribution is known as smoothing or
+discounting.
+
+The Good-Turing estimate states that for any item that occurs $C$
+times, we should pretend that it occurs $C'$ times where
+
+\[ C' = (C + 1) \frac{\vocab_{C+1}}{\vocab_{C}} \]
+
+where $\vocab_C$ is the number of items that occur $C$ times.  If the
+total number of observations is $N$, the maximum likelihood
+probability estimate for a $C$ count item will be $C/N$, whereas the
+Good-Turing estimate will be $C'/N$.  Note that using $C'/N$ may lead
+to an unnormalized probability distribution (i.e. probabilities may
+not add to 1).  SRILM uses Katz smoothing by default, which uses the
+Good-Turing estimate in its calculations and fixes the normalization
+problem.  Here we will use a simple example by Goodman to demonstrate
+the simple Good-Turing estimate.
+
+Imagine you are fishing and there are 8 fish species: carp, perch,
+whitefish, trout, salmon, eel, catfish, and bass.  You have caught 10
+carp, 3 perch, 2 whitefish, 1 trout, 1 salmon, and 1 eel.  
+
+Note that in language modeling terminology the vocabulary size
+$|\vocab|=8$, the training corpus size $|\mathcal{C}|=18$, and we are
+considering a 1-gram model.  Also, $\vocab_0 = 2$ (catfish, bass) and
+$\vocab_1 = 3$ (trout, salmon, eel), etc.  According to Good-Turing
+estimate:
+
+\begin{enumerate}[(a)]
+\item How likely is it that next species is trout?  Is this higher or
+  lower than the ML estimate?
+%% Less than 1/18
+\vspace*{2cm}
+
+\item How likely is it that the next species is a type of fish never
+  before seen (i.e. catfish or bass)?  Compare this with the ML
+  estimate for the total probability of 0-count species (catfish and
+  bass).  Compare this with the ML estimate for the total probability
+  of 1-count species (trout, salmon, and eel).
+%% 3/18
+\vspace*{2cm}
+
+\item Show that the Good-Turing estimate of the total probability of
+  $C$-count items is equal to the ML estimate of the total probability
+  of $(C+1)$-count items as long as $\vocab_C$ and $\vocab_{C+1}$ are
+  non-zero.
+\vspace*{4cm}
+
+\item According to Good-Turing, how likely is it that the next species
+  is Perch?  Do you like this estimate?  If not, how would you fix it?
+\end{enumerate}
+
+
+\newpage
+\section{Absolute discounting}
+
+Another way to take some probability mass from the observed n-grams
+and distribute it to unobserved n-grams is to subtract a fixed value
+$0<D<1$ from each non-zero n-gram count.
+
+\[ C'(abc) = \max(C(abc) - D, 0) \]
+
+If we interpolate the discounted estimates for n-grams with
+the estimates for $(n-1)$-grams we get the following recursive
+definition for $p$:
+
+\[ p(c|ab) = \frac{\max(C(abc) - D, 0)}{C(ab)} + \gamma(ab) p(c|b) \]
+
+To end the recursion we can use a uniform distribution for $n=0$:
+
+\[ p_0(c)=1/|\vocab| \]
+
+Calculate the back-off weight $\gamma(ab)$ so that this estimate is
+properly normalized, i.e. $\sum_{c\in\vocab} p(c|ab) = 1$.  You can
+assume that $p(c|b)$ is already normalized.
+
+
+\newpage
+\section{Kneser-Ney}
+
+One problem with using the $(n-1)$-gram model to smooth the
+probability estimates is that sometimes it gives unnecessarily high
+probabilities to words that it shouldn't.  For example assume ``San
+Francisco'' is a frequently occuring bigram, i.e. C(San Francisco) is
+high.  Also assume that the word ``Francisco'' only appears after
+``San'' in the training corpus, i.e. for any word foo $\neq$ San,
+C(foo Francisco) = 0.  What happens if we ask absolute discounting for
+$p(\mbox{Francisco} | \mbox{foo})$?
+
+\[ p(\mbox{Francisco} | \mbox{foo}) = 0 + \gamma(\mbox{foo})
+p(\mbox{Francisco}) \]
+
+Well, $p(\mbox{Francisco})$ is high because Francisco really occurs a
+lot in the corpus, so we get an unreasonably high estimate for the
+probability of ``foo Francisco''.  This is a problem because it means
+we get unreasonably low probabilities for other perfectly reasonable
+n-grams because probability (when normalized) is a zero-sum game!  We
+should have used a low estimate for $p(\mbox{Francisco})$ because it
+will mostly be used if ``Francisco'' is {\em not} following ``San'' as
+back-off.  To fix this problem, Kneser-Ney suggests we try to satisfy
+the following reasonable condition:
+
+\[ \pml(b) = \frac{C(b)}{C} = \sum_a p(ab) \]
+
+where $C$ is the corpus size and the marginal bigram probability
+$p(ab)$ is:
+
+\[ p(ab) = p(b|a) p(a) \approx p(b|a) \frac{C(a)}{C} \]
+
+Using interpolated absolute discounting for bigrams:
+
+\[ p(b|a) = \frac{\max(C(ab) - D, 0)}{C(a)} + \gamma(a) p(b) \]
+
+Derive an expression for $p(b)$ that will satisfy the Kneser-Ney
+condition.
+
+\end{document}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\section{Additive smoothing}
+
+Unfortunately maximum likelihood does not work very well because it
+assigns zero probability to n-grams that have not been observed in the
+training corpus.  To avoid the zero probabilities, we take some
+probability mass from the observed n-grams and distribute it to
+unobserved n-grams.  Such redistribution is known as smoothing or
+discounting.  One of the simplest methods used is {\em additive
+  smoothing} where we add a small positive constant $A>0$ to each
+n-gram count.
+
+\[ C'(abc) = C(abc) + A \]
+
+This is usually a very poor smoothing method (i.e. has very bad test
+set perplexity) used only for instructional purposes.
+
+Smoothed or not, our probability estimates should always be
+normalized.  If $\vocab$ is our vocabulary we need to make sure that
+$\sum_{c\in\vocab} p(c|ab) = 1$.  If we use $C(abc)+A$ for the
+nominator of our estimator, what expression should we use for the
+denominator instead of $C(ab)$ so that additive smoothing is properly
+normalized?  Show that the expression you suggest satisfies the
+normalization equation.
+
+\newpage
+\section{Jelinek-Mercer smoothing}
+
+A smoothing method that works better in practice is to multiply the
+counts with a constant $0 < \lambda < 1$:
+
+\[ C'(abc) = \lambda(ab) C(abc) \]
+
+Different $\lambda$ constants may be chosen based on the context $ab$,
+(thus the expression $\lambda(ab)$) but the same constant is used for
+all $c$ following $ab$.
+
+To distribute the discounted probability to unobserved n-grams we can
+interpolate the discounted n-gram probability estimate with lower
+order $(n-1)$-gram probabilities:
+
+\[ p(c|ab) = \lambda(ab) C(abc) / C(ab) + \gamma(ab) p(c|b) \]
+
+where $\lambda$ and $\gamma$ are the interpolation weights
+that may depend on the context (ab).  This gives a recursive
+definition of $p()$ for n-grams in terms of $p()$ for $(n-1)$-grams.
+To end the recursion we can use a uniform distribution for $n=0$:
+
+\[ p_0(c)=1/|\vocab| \]
+
+For this interpolated model to be properly normalized
+(i.e. $\sum_{c\in\vocab} p(c|ab) = 1$) what value of $\gamma$ (also
+known as the back-off weight) should we use?  Show that the value you
+suggest satisfies the normalization equation.  You can assume that
+$p(c|b)$ is already normalized.
+
+%\newpage
+%\section{Back-off vs Interpolation}

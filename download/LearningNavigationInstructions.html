@@ -1,0 +1,202 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>Learning to Interpret Natural Language Navigation Instructions from Observations</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=iso-8859-1">
+<META content="MSHTML 6.00.2800.1458" name=GENERATOR></HEAD>
+
+
+<body bgcolor="lightblue">
+
+
+<CENTER>
+<font color="cc5500">
+<h1>Learning to Interpret Natural Language<br>
+Navigation Instructions from Observations</h1>
+<h3>
+
+  <a href="http://www.utexas.edu"><font color="cc5500">University of Texas at Austin</font></a> <br>
+  <a href="http://www.cs.utexas.edu"><font color="cc5500">Department of Computer Sciences</font></a> <br>
+  <a href="http://www.cs.utexas.edu/~dlcc"><font color="cc5500">David L. Chen</font></a>, and
+  <a href="http://www.cs.utexas.edu/~mooney"><font color="cc5500">Raymond J. Mooney</font></a>
+</h3>
+</font>
+
+<a href="figures/MapJelly.jpg"><img src="figures/MapJelly.jpg" width="300"></a>
+
+<br>
+Map and sample route of one of the virtual worlds
+</CENTER>
+
+<br>
+
+<center>
+[ 
+<a href="#description">Description</a> | 
+<a href="#demo">Demo</a> |
+<a href="#publication">Publication and Talks</a> | 
+
+<a href="#data">Data and Code</a> |
+<a href="#contact">Contact</a>
+]
+</center>
+
+<HR>
+
+<table width="1000" align="center" cellspacing=20 cellpadding=20>
+<tr bgcolor="#E0F4FF"><td>
+<a name="description"></a>
+<h2><font color="black"> Description of the project </font></h2>
+<a href="index.html">Back to Top</a>
+
+<p>
+The ability to understand natural-language instructions is critical to building
+intelligent agents that interact with humans.  In this project we look at building a system that learns
+to transform natural-language navigation instructions into executable formal
+plans.  Given no prior linguistic knowledge, the system learns by only
+observing how humans follow navigation instructions.  
+<p>
+The system is trained and evaluated based on the instructor and follower data collected by <a href="http://www.aaai.org/Papers/AAAI/2006/AAAI06-232.pdf">MacMahon et al. (2006)</a>.  There are three virtual indoor environments in total.  Each environment consists of interconnecting hallways with objects placed at various intersections.  There are several different floor patterns as well as wall painting which were used in conjunctiong with the objects for giving directions.
+<p>
+This project is part of our larger effort in developing learning techniques for ground language acquisition.  Compared to our earlier project on <a href="http://www.cs.utexas.edu/~ml/clamp/sportscasting">Learning to Sportscast</a>, this project has a more complex ambiguous supervsion problem.  Instead of considering only a handful of possible events referred to by a sportscasting comment, we have to consider an exponential number of navigation plans for each instruction.  The interactive nature of the navigation task also allows for more interesting learning scenarios where a human participant is involved.
+</tr>
+
+<tr bgcolor="#E0F4FF">        <td>
+<a name="demo"></a>
+<h2><font color="black"> Demo </font></h2>
+
+<a href="index.html">Back to Top</a>
+            <p>
+Below is an example of a successful parse by our system trained on <i>refined landmarks plan</i>.  In addition to the simulation, the parse for each instruction is also shown.  Notice that even though it does not correctly parse everything, it captures enough of the meaning to form a sufficient plan.
+<p>
+<a href="http://www.cs.utexas.edu/users/ml/clamp/navigation/launch.jnlp">Example run of our navigation system</a>
+</tr>
+
+<tr bgcolor="#E0F4FF"><td>
+<a name="publication"></a>
+<h2><font color="black"> Publication and Talks</font></h2>
+
+<a href="index.html">Back to Top</a>
+    <ul>
+
+      <li>
+        <b>Fast Online Lexicon Learning for Grounded Language Acquisition</b>
+      <br>
+        [<a href="http://z.cs.utexas.edu/users/ai-lab/pub-view.php?PubID=127162">Abstract</a>]
+        [<a href="http://www.cs.utexas.edu/users/ml/papers/chen.acl12.pdf">PDF</a>]
+        [<a href="http://www.cs.utexas.edu/users/ml/slides/chen-acl12.pptx">Slides (PPT)</a>]
+       <br>
+        David L. Chen
+       <br>
+        Annual Meetings of the Association for Computational Linguistics (ACL), 2012
+      </li>
+      <br>
+
+      <li>
+        <b>Learning to Interpret Natural Language Navigation Instructions from Observations</b> 
+       <br>
+        [<a href="http://z.cs.utexas.edu/users/ai-lab/pub-view.php?PubID=127067">Abstract</a>]
+        [<a href="http://www.cs.utexas.edu/users/ml/papers/chen.aaai11.pdf">PDF</a>]
+        [<a href="http://www.cs.utexas.edu/users/ml/slides/chen-aaai11.pptx">Slides (PPT)</a>] 
+       <br>
+
+        David L. Chen and Raymond J. Mooney
+       <br>
+         AAAI Conference on Artificial Intelligence (AAAI), 2011       
+      </li>
+      <br>
+ <li>
+        <b>Panning for Gold: Finding Relevant Semantic Content for Grounded Language Learning</b>       
+        <br>
+         [<a href="http://www.cs.utexas.edu/~ai-lab/pub-view.php?PubID=127102">Abstract</a>]
+         [<a href="http://www.cs.utexas.edu/users/ml/papers/chen.mlslp11.pdf">PDF</a>]
+         [<a href="http://www.cs.utexas.edu/users/ml/clamp/navigation/MLSLP2011poster.pptx">Poster (PPT)</a>]
+         [<a href="http://www.cs.utexas.edu/users/ml/clamp/navigation/MLSLP2011poster.pdf">Poster (PDF)</a>]
+       <br>
+
+        David L. Chen and Raymond J. Mooney
+       <br>
+        Symposium on Machine Learning in Speech and Language Processing (MLSLP), 2011
+      </li>
+ </ul>
+<tr>
+
+<tr bgcolor="#E0F4FF"><td>
+<a name="data"></a>
+<h2><font color="black"> Data and Code</font></h2>
+<a href="index.html">Back to Top</a>
+
+<p>
+<h3><font color="green"> Overview </font></h3>
+<p>
+The MARCO code and data used in all our experiments were originally produced by <a href="http://robotics.csres.utexas.edu/~adastra/">Matt MacMahon</a> as described in his <a href="http://robotics.csres.utexas.edu/~adastra/papers/b2hd-macmahonstankiewiczkuipers-aaai-06.html">AAAI 2006 paper</a>.
+<p>
+There are three environments used (named grid, l, and jelly) with instructions collected from 6 different subjects.  The included map files contain information about the layout of the environments and the locations of the objects.
+<p>
+The included MARCO code is a modified version of Matt's original code to facilitate easier usage of the MARCO parser and executor.
+
+
+<h3><font color="green"> Citations </font></h3>
+
+<p>
+Please use the following citation when referencing the <b>original</b> MARCO code and data: <br>
+<pre>
+@InProceedings{macmahon:aaai06,
+  title = &quot;Walk the Talk: Connecting Language, Knowledge, and Action in Route Instructions&quot;,
+  author = &quot;Matt MacMahon and Brian Stankiewicz and Benjamin Kuipers&quot;,
+  booktitle = &quot;Proceedings of the 21st National Conference on Artificial Intelligence (AAAI-2006)&quot;,
+  address = &quot;Boston, MA, USA&quot;,
+  month = &quot;July&quot;,
+  year = 2006
+} 
+
+</pre>
+
+Please use the following citation when referencing our <b>modified version</b> of the MARCO code and data: <br>
+<pre>
+@InProceedings{chen:aaai11,
+  title = &quot;Learning to Interpret Natural Language Navigation Instructions fro mObservations&quot;,
+  author = &quot;David L. Chen and Raymond J. Mooney&quot;,
+  booktitle = &quot;Proceedings of the 25th AAAI Conference on Artificial Intelligence (AAAI-2011)&quot;,
+  address = &quot;San Francisco, CA, USA&quot;,
+  month = &quot;August&quot;,
+  year = 2011
+} 
+
+</pre>
+
+The Mandarin Chinese translation of the data was first mentioned in the following paper:<br>
+<pre>
+@InProceedings{chen:acl12,
+  title = &quot;Fast Online Lexicon Learning for Grounded Language Acquisition&quot;,
+  author = &quot;David L. Chen&quot;,
+  booktitle = &quot;Proceedings of the 50th Annual Meeting of the Association for Computational Linguistics (ACL-2012)&quot;,
+  address = &quot;Jeju, Republic of Korea&quot;,
+  month = &quot;July&quot;,
+  year = 2012
+} 
+
+</pre>
+
+<h3><font color="green"> Downloads </font></h3>
+
+Compressed tarballs of data and code:
+<a href="downloads/LearningNavigationInstructions.tgz">LearningNavigationInstructions.tgz</a>
+<p>
+You can also browse the data and code <a href="downloads/LearningNavigationInstructions">here</a>
+</tr>
+
+<tr bgcolor="#E0F4FF"><td>
+<a name="contact"></a>
+
+<h2><font color="black"> Contact Information </font></h2>
+<a href="index.html">Back to Top</a>
+<p>
+If you have any questions or comments, please contact <a href="http://www.cs.utexas.edu/~dlcc">David Chen</a>
+<p>
+If you are interested in reading more literature in this area, check out our reading group 
+<a href="http://www.cs.utexas.edu/~ml/clamp/">CLAMP</a>
+</tr>
+</table>
+</BODY>
+</HTML>
+
+

@@ -1,0 +1,16 @@
+#!/usr/bin/perl -w
+use strict;
+use Data::Dumper;
+
+my %s = (oov => 0, sentences => 0, words => 0, zeroprobs => 0, logprob => 0);
+while (<>) {
+    $s{oov}++ if /= \[OOV\]/;
+    $s{sentences}++ if /^\s*$/;
+    $s{words}++ if /^\s*p\(/ and not /^\s*p\( <\/s>/;
+    $s{zeroprobs}++ if /\]\s+0\s+\[/ and not /= \[OOV\]/;
+    $s{logprob} += $1 if /\[\s*(-?\d*\.?\d*)\s*\]\s*$/;
+}
+$s{ppl}  = 10 ** -($s{logprob} / ($s{words} - $s{oov} + $s{sentences}));
+$s{ppl1} = 10 ** -($s{logprob} / ($s{words} - $s{oov}));
+
+print Dumper(\%s);

@@ -1,0 +1,33 @@
+((SINV (`` ``) 
+    (S-TPC-3 
+      (NP-SBJ (DT This) )
+      (VP (VBZ is) (RB not) 
+        (NP-PRD 
+          (NP (DT the) (NN sort) )
+          (PP (IN of) 
+            (NP (NN market) ))
+          (SBAR 
+            (WHNP-2 (-NONE- 0) )
+            (S 
+              (NP-SBJ (-NONE- *) )
+              (VP (TO to) 
+                (VP (VB have) 
+                  (NP (DT a) (JJ big) (NN position) )
+                  (PP (IN in) 
+                    (NP (-NONE- *T*-2) )))))))))
+    (, ,) ('' '') 
+    (VP (VBD said) 
+      (S (-NONE- *T*-3) ))
+    (NP-SBJ 
+      (NP (NNP David) (NNP Smith) )
+      (, ,) 
+      (SBAR 
+        (WHNP-1 (WP who) )
+        (S 
+          (NP-SBJ (-NONE- *T*-1) )
+          (VP (VBZ heads) 
+            (NP 
+              (NP (NN trading) )
+              (PP (IN in) 
+                (NP (DT all) (JJ non-U.S.) (NNS stocks) )))))))
+    (. .) ))

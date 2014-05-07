@@ -1,0 +1,119 @@
+COMP 542 PROJECT 1 -- BUILDING LANGUAGE MODELS WITH SRILM
+
+
+Please submit your answers as a text file on the course website.  There are a total of 7 problems worth 100 points which should take you around 2 minutes / point.
+
+
+1. CORPORA
+
+You have been provided with two text files for this project:
+
+  treebank3-parsed-mrg-wsj.tok.gz
+
+  treebank3-tagged-pos-brown.tok.gz
+
+These compressed files contain the tokenized (words and punctuation split) and sentence tagged (each sentence on a new line) of the Brown corpus and the Wall Street Journal corpus from the Penn Treebank.  Each corpus contains about 1 million tokens.  The Wall Street Journal corpus consists of newswire text, whereas Brown has a mix of genres including fiction, religion, science, hobbies, letters, humor etc.
+
+[10 points] How many tokens and sentences does each file have?  What is the average number of tokens for each sentence?  What is the number of unique words (vocabulary size) in each file?  You can write your own programs for all this but I would recommend taking this opportunity to learn about unix command-line pipes and the following unix commands if you are not familiar with them already:
+
+  gzip, gunzip, zcat, head, tail, more, wc, sort, uniq
+
+
+2. SRILM
+
+We are going to experiment with language models built and tested with these corpora using the SRILM toolkit.  Please download and install the newest stable version of SRILM from
+
+  http://www.speech.sri.com/projects/srilm/download.html
+
+or use one of the AI Lab Linux servers where it has already been installed.
+
+[10 points] Use the default options of SRILM to train a language model with each corpus (You will use the ngram-count command with the minimal options -text and -lm.  All SRILM commands can handle gzip compressed files).  Test the two language models using the same two files as test corpora (using the ngram command with its minimal options -lm and -ppl) and report the four resulting perplexities (denoted by ppl in the output):
+
+TRAIN TEST
+
+wsj wsj
+
+wsj brown
+
+brown wsj
+
+brown brown
+
+
+3. PPL and PPL1
+
+The default output of the ngram command looks like this:
+
+  file ...: 52108 sentences, 1.17082e+06 words, 72981 OOVs
+
+  0 zeroprobs, logprob= -3.10527e+06 ppl= 501.609 ppl1= 673.807
+
+If you use the -debug 2 option with ngram the debug output gives you the calculation for each word like this:
+
+  p( The | <s> ) = [2gram] 0.155625 [ -0.80792 ]
+
+  p( Fulton | The ...) = [1gram] 3.53719e-06 [ -5.45134 ]
+
+  p( County | Fulton ...) = [1gram] 3.28126e-06 [ -5.48396 ]
+
+  p( Grand | County ...) = [1gram] 1.53104e-05 [ -4.81501 ]
+
+  p( <unk> | Grand ...) = [OOV] 0 [ -inf ]
+
+  p( said | <unk> ...) = [1gram] 0.00583168 [ -2.23421 ]
+
+The first square brackets contain the order of the longest model ngram that matched the text producing the following probability, and the last square brackets contain log10 of this probability.  OOV means "out of vocabulary" and a zero probability results in -inf log probability.
+
+[20 points] Write a program that produces the statistics in the default output of the ngram command using the per-word information in the -debug 2 output.  What is the difference between ppl and ppl1?  (Hint: it has to do with the </s> token).  Include a listing of your program and its output.
+
+
+4. OOV
+
+[5 points] Based on your program from Problem 3 answer the following questions:
+
+- How are the OOV words handled in the ppl calculation?
+
+- What ppl would be reported if every word was OOV?
+
+- Are the 4 perplexities computed in Problem 2 comparable?
+
+
+5. UNK
+
+[5 points] Rerun the experiments in Problem 2 using the -unk option for both ngram-count and ngram.  Modify your program from Problem 3 if necessary to replicate the reported ngram numbers from the -debug 2 output.
+
+- What are the four perplexities and how do they compare to Problem 2?
+
+- How are the OOV words handled in the ppl calculation?
+
+- What ppl would be reported if every word was OOV?
+
+- Are the 4 perplexities computed in this problem with -unk comparable?
+
+
+6. VOCAB
+
+The "-vocab file" option to ngram-count makes it replace all words not found in "file" with the special unknown word token <unk>.
+
+[20 points] Build a vocabulary file (one word per line) using words that appear more than once when the two corpus files are combined.  Supplying this vocabulary file to the -vocab option of ngram-count recompute the four perplexities from the last problem. Include the listing of the program or commands you used to create the vocabulary file.  Analyze the -debug 2 output with your program from Problem 3, and answer the following questions:
+
+- What are the four perplexities and how do they compare to Problem 2?
+
+- How are the OOV words handled in the ppl calculation?
+
+- What ppl would be reported if every word was OOV?
+
+- Are the 4 perplexities computed in this problem with -vocab comparable?
+
+
+7. UNCERTAINTY
+
+Each experimental result gives us an estimate of the performance.  These estimates are worthless unless we know the uncertainty associated with them.  A model with a perplexity of 700 looks better than a model with a perplexity of 710, but you would not be so sure if the standard error (uncertainty) of the results was more than 100.  We have (at the very least) the following two sources of uncertainty:
+
+(i) Test set size: The test corpus is supposed to give us an estimate of expected per-word perplexity for unseen text.  If the test set consists of a single word, this estimate could be quite inaccurate (maybe it was a rare word, maybe it was more common than usual).  If we had a whole sentence you would be a bit more confident but still uneasy (maybe it was a short, common sentence, maybe unreasonably long and unusual).  The more test data we have the more confident we become that the estimate we compute is close to the true average per-word perplexity of unseen text.  However unless we have an infinite amount of test data there will still be some residual uncertainty that needs to be quantified.
+
+(ii) Training set variation: It is usually the case that the larger the training data the better performance we will get.  However even for different training data with the same size from the same source there will be some variation.  It is important to quantify that variation for the training set size that we do have.
+
+There are several methods of computing the uncertainty that comes from test set size and training set variation.  In this problem we will use "bootstrap".  The idea behind bootstrap is to take a dataset with N entries and randomly sample from it N entries with replacement.  (Bonus question: how many of the original entries do you expect to appear in the output?)
+
+[30 points] Write a program that takes a text file and outputs another text file with the same number of lines where the output lines have been randomly sampled with replacement from the input lines.  Apply the program to both the WSJ and the Brown files 10 times obtaining 10 pairs of files.  Taking WSJ as training and Brown as the testing corpus, quantify the test set uncertainty (hold training data fixed and find the standard deviation of perplexity for the ten test files), and training set variation (hold test data fixed and find the standard deviation of perplexity for the ten training files).  Include the listing for your bootstrap program and report the perplexity as well as the train and test standard error results in your answer.

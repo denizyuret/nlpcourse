@@ -1,7 +1,26 @@
+LearningNavigationInstructions.html
+LearningNavigationInstructions.tgz
+atis-lsz.tgz	From Zettlemoyer email, atis in lambda fmt, numbers don't exactly match ZC07.
+geo880ccg.tgz	geo880 db in typed lambda format from https://bitbucket.org/yoavartzi/spf
+geoquery.tar.gz	http://www.cs.utexas.edu/users/ml/nldata/geoquery.html
 liblbfgs-1.10.tar.gz
 liblinear-1.93.tar.gz
 libsvm-3.17.tar.gz
 mallet-2.0.7.tar.gz
-README
+maptask.tgz
+mooney20140413.tgz	Archive of http://www.cs.utexas.edu/users/ml/nldata, has geo, job, rest datasets.
 review_polarity.tar.gz
-srilm-1.7.0-Lite.tgz
+srilm-1.7.0.tgz
+treebank3-parsed-mrg-wsj.tgz
+treebank3-parsed-mrg-wsj.tok.gz
+treebank3-tagged-pos-brown.tok.gz
+wasp-1.0.tar.gz	From http://www.cs.utexas.edu/~ml/wasp, has geo (funql) and robocup (clang) corpora, includes several natural languages, ptb style parse, several semantic languages.
+wasp-2.0alpha.tar.gz From http://www.cs.utexas.edu/~ml/wasp, has geo (funql and prolog) and robocup (clang) corpora.
+yoavartzi-navi-275e90c1243e.zip	https://bitbucket.org/yoavartzi/navi/overview
+yoavartzi-spf-71f8b99130ca.zip	https://bitbucket.org/yoavartzi/spf/overview
+Alternatively: https://bitbucket.org/yoavartzi/spf.git
+Download spf tutorial from yoavartzi.com/pub/afz-tutorial.acl.2013.pdf
+Data and code for navigation:
+https://bitbucket.org/yoavartzi/navi
+https://bitbucket.org/yoavartzi/navi-corpus
+https://bitbucket.org/yoavartzi/spf

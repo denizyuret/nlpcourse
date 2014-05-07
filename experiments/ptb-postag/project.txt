@@ -1,0 +1,161 @@
+COMP 542 PROJECT 3 -- PART-OF-SPEECH TAGGING
+
+Please submit your answers as a text file on the course website.  There
+are a total of 3 problems worth 100 points which should take you around
+4 minutes / point.  The due date is December 15.  Please start early and
+use the class mailing list to clarify your questions.
+
+
+1. CORPORA
+
+Please download the Penn Treebank WSJ corpus for this assignment using
+the following link:
+
+treebank3-parsed-mrg-wsj.tgz
+
+The corpus has been divided into sections 00, 01, ..., 24.  Following
+(Collins, 2002) you will use sections 00-18 for training, 19-21 for
+development, and 22-24 for testing.
+
+Each section contains up to 100 documents.  Each document has one or
+more parsed sentences like the following:
+
+( (S
+    (NP-SBJ (NN Factory) (NNS payrolls) )
+    (VP (VBD fell)
+      (PP-TMP (IN in)
+        (NP (NNP September) )))
+    (. .) ))
+
+For this assignment we will only use the part-of-speech tags which are
+directly paired with words (NN, NNS, VBD, IN, NNP, and '.' in the
+above example).
+
+Note: for this assignment they are not necessary but details of the
+PTB format can be found on the website 
+
+http://bulba.sdsu.edu/jeanette/thesis/PennTags.html
+
+or in these manuals and papers available from
+
+http://www.denizyuret.com/bibtex.php:
+
+ Ann Bies, et al. 1995. Bracketing guidelines for Treebank II style,
+ Penn Treebank Project.
+
+ Beatrice Santorini. 1990. Part-of-Speech Tagging Guidelines for the
+ Penn Treebank Project.
+
+ Mitchell P. Marcus, et al. 1994. The Penn Treebank: Annotating
+ predicate argument structure. In ARPA Human Language Technology
+ Workshop, March.
+
+ Mitchell P. Marcus, Beatrice Santorini and Mary Ann
+ Marcinkiewicz. 1993. Building a large annotated corpus of English:
+ The Penn Treebank. Computational Linguistics, vol 19, no 2, pp
+ 313--330.
+
+
+[30 points] Write a script that will take a file in PTB format and
+output a two column tab separated file that has words on the left and
+parts-of-speech on the right.  Convert all PTB files using your script
+and include your source code with the assignment.  Make sure you have
+beginning-of-sentence and end-of-sentence tags/words as necessary in
+your models.  Please answer the following questions:
+
+a) How many files, sentences, and tokens (excluding any <s> and </s>
+you may have added) are there in the training, development, and test
+portions of your data?
+
+b) What is the vocabulary size of the training set?
+
+c) How many unknown tokens (ones that have not been observed in the
+training data) are there in the development and test portions?
+
+d) What is the number of unique tags, tag bigrams, and tag trigrams in
+the training set?
+
+e) How many unknown tags, tag bigrams, and tag trigrams (ones that
+have not been observed in the training data) are there in the
+development and test portions?
+
+
+2. BASELINE
+
+[20 points] What is the most-frequent-tag baseline?  For each word in
+the test set assign its most frequent tag from the training set (if
+the word has not been observed in the training set, assign the most
+frequent tag for the one-count words in the training set).
+
+
+2. HIDDEN MARKOV MODELS
+
+[50 points] Implement the supervised Hidden Markov Model discussed in
+class.  Use a trigram model for the tags.  Remember that the basic HMM
+can be trained by counting various statistics in the training data.
+However you need to be careful with smoothing because the
+development/test data will contain unseen tag trigrams and unseen
+tag-word pairs.  Pick simple but effective smoothing methods for tag
+trigrams and tag-word pairs (you may want to prefer different methods
+because the number of unique tags is a lot smaller than the number of
+unique words).  Optimize any smoothing parameters on the development
+data.  Report your accuracy on the test data.  Discuss whether your
+result is statistically significantly better than the
+most-frequent-tag baseline.  Include your code with the assignment.
+
+
+3. EXTRA CREDIT (can be used to improve final grade, or as final
+project)
+
+Implement one of the advanced methods we have covered or one that you
+come up with to approach or exceed the current state-of-the-art
+(Toutanova et al. 2003).  Include an error analysis that estimates
+what percent of the errors are actually due to human annotator
+inconsistency.  The following papers are available from
+http://www.denizyuret.com/bibtex.php:
+
+a) This paper has the current best result for supervised POS tagging.
+
+ Kristina Toutanova, Dan Klein, Christopher D Manning and Yoram
+ Singer. 2003. Feature-rich part-of-speech tagging with a cyclic
+ dependency network. In Proceedings of the 2003 Conference of the
+ North American Chapter of the Association for Computational
+ Linguistics on Human Language Technology.
+
+b) We covered Collins 2002, and the perceptron method several times in
+class.  You should have no problem implementing this if you can get
+the dynamic programming decoder to work.  Use feature engineering to
+get the best results.  The slides from Nov 27 (available on the course
+website) provide a nice summary.
+
+ Michael Collins. 2002. Discriminative training methods for hidden
+ markov models: Theory and experiments with perceptron algorithms. In
+ Proceedings of the ACL-02 conference on Empirical methods in natural
+ language processing-Volume 10, pp 1--8. Association for Computational
+ Linguistics.
+
+c) CRF's are difficult to train but there are software packages
+available that you can use.  Use feature engineering to get the best
+results.
+
+ John Lafferty, Andrew McCallum and Fernando Pereira. 2001.
+ Conditional Random Fields: Probabilistic Models for Segmenting and
+ Labeling Sequence Data. In Proc. 18th International Conf. on Machine
+ Learning, pp 282--289.
+
+d) MEMM's are easier to train but you still need convex optimization.
+There are software packages available.
+
+ Andrew McCallum, Dayne Freitag and Fernando CN Pereira. 2000. Maximum
+ Entropy Markov Models for Information Extraction and Segmentation. In
+ ICML, pp 591--598.
+
+e) Alternatively you can work on unsupervised tagging.  The following
+describes an unsupervised HMM algorithm that is not EM based.  They
+enforce the one-tag-per-word constraint, which is not compatible with
+EM. (why?)
+
+ Peter F. Brown, et al. 1992. Class-based n-gram models of natural
+ language. Computational Linguistics, vol 18, no 4, pp 467-479.
+
+

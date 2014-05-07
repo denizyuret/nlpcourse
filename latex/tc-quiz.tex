@@ -1,0 +1,252 @@
+\documentclass[a4paper,fleqn]{article}
+\usepackage{fullpage}
+\usepackage{enumerate}
+\usepackage{parskip}
+\usepackage{xfrac}
+\renewcommand{\vec}{\mathbf}
+
+\newcommand{\vocab}{\mathcal{V}}
+\newcommand{\pml}{p_{\textsc{ml}}}
+\newcommand{\sos}{$<$s$>$}
+\newcommand{\eos}{$<$/s$>$}
+
+\title{Comp542 Quiz 2: Classification Models}
+\author{\\ \\Your Name: \underline{\hspace*{10cm}}}
+\begin{document}
+\maketitle
+\newpage
+\section{Naive Bayes}
+
+Generative classification models learn the joint distribution
+$p(\vec{x}, y)$ from data where $\vec{x}$ is the input vector with
+components $x_1, x_2, \dots, x_D$ and $y\in\mathcal{Y}$ is the class.
+They generally do this by learning the probability for each class
+$p(y)$ and the class conditional distribution for $\vec{x}$ given $y$
+using the following identity:
+\[ p(\vec{x}, y) = p(y) p(\vec{x}|y) \]
+
+Naive Bayes is a simple generative classification model that assumes
+the components of the input vector $\vec{x}$ are conditionally
+independent of each other given the class $y$:
+\[ p(\vec{x}, y) \approx p(y) p(x_1|y) \dots p(x_D|y) \]
+
+In this question we are going to learn a Naive Bayes model for the
+following problem: We would like to find out whether it rained $(y=1)$
+or did not rain $(y=0)$ during a given night by placing two buckets
+($x_1$ and $x_2$) outside.  The next morning we check whether each
+bucket is full $(x_i=1)$ or empty $(x_i=0)$ to make our prediction.
+We stay up during the night for 8 days to collect the following
+training data:
+
+\begin{center}
+\begin{tabular}{c|c|c}
+$x_1$ & $x_2$ & $y$ \\ \hline
+1 & 1 & 1 \\
+1 & 1 & 1 \\
+1 & 1 & 1 \\
+0 & 0 & 1 \\
+1 & 1 & 0 \\
+0 & 0 & 0 \\
+0 & 0 & 0 \\
+0 & 0 & 0 \\
+\end{tabular}
+\end{center}
+
+\begin{enumerate}[(a)]
+\item What are the maximum likelihood estimates for the parameters of
+  our Naive Bayes model? \begin{eqnarray*}
+   p(y=1)&=&\\                  % 1/2
+   p(x_1=1|y=1)&=&\\            % 3/4
+   p(x_1=1|y=0)&=&\\            % 1/4
+   p(x_2=1|y=1)&=&\\            % 3/4
+   p(x_2=1|y=0)&=&\\            % 1/4
+\end{eqnarray*}
+\item Using this Naive Bayes model, what is the probability of rain
+  given both buckets are full?  Verify your answer by making sure
+  $p(y=1|x_1,x_2) + p(y=0|x_1,x_2) = 1$.  You can use the following
+  identity: $ p(y|\vec{x}) =
+  p(\vec{x},y)/\sum_{y'\in\mathcal{Y}}p(\vec{x},y')$.  Show your work.
+
+\vspace*{1cm}
+\[ p(y=1 | x_1=1, x_2=1) = \]
+
+% py1 px1|y1 px2|y1 = 1/2 3/4 3/4 = 9/32
+% py0 px1|y0 px2|y0 = 1/2 1/4 1/4 = 1/32
+% answer: 9/10
+
+\vspace*{3cm}
+\item What is the empirical probability (i.e. based on the training
+  set) of rain given both buckets are full?  Can you explain the
+  difference?  (If not don't worry, we will investigate the reason
+  throughout this quiz.)
+% answer: 3/4
+\end{enumerate}
+
+\newpage
+\section{Conditional log-linear models}
+
+Conditional log-linear models represent $(\vec{x}, y)$ pairs using a
+vector of features $\vec{g}: \mathcal{X} \times \mathcal{Y}
+\rightarrow \mathbb{R}^D$:
+\[ \vec{g}(\vec{x}, y) = \langle g_1(\vec{x}, y), g_2(\vec{x}, y), \dots, g_D(\vec{x}, y) \rangle^T \]
+
+They represent the conditional probability $p(y|\vec{x})$ based on a
+linear combination of these features determined by a weight vector
+$\vec{w}$:
+\[ p_\vec{w}(y|\vec{x}) = \frac{1}{Z(\vec{x})}
+\exp \vec{w}^T \vec{g}(\vec{x}, y)
+\quad\text{ where }
+Z(\vec{x}) = \sum_{y'\in\mathcal{Y}} \exp \vec{w}^T \vec{g}(\vec{x}, y')
+\]
+
+In this problem we will apply a conditional log-linear model to the
+rain bucket question from Problem 1 {\bf using the same training set}.
+To make a direct comparison we will use 10 binary features (analogous
+to the parameters of the Naive Bayes model) specified in the following
+table:
+
+\begin{center}
+\begin{tabular}{lllll}
+$\vec{g}$ & $x_1$ & $x_2$ & $y$ & $\vec{w}$ \\ \hline
+g_{**0} & * & * & 0 & 0\\
+g_{**1} & * & * & 1 & 0\\
+g_{0*0} & 0 & * & 0 & $\sfrac{1}{2}\ln 3$\\
+g_{0*1} & 0 & * & 1 & 0\\
+g_{1*0} & 1 & * & 0 & 0\\
+g_{1*1} & 1 & * & 1 & $\sfrac{1}{2}\ln 3$\\
+g_{*00} & * & 0 & 0 & $\sfrac{1}{2}\ln 3$\\
+g_{*01} & * & 0 & 1 & 0\\
+g_{*10} & * & 1 & 0 & 0\\
+g_{*11} & * & 1 & 1 & $\sfrac{1}{2}\ln 3$\\
+\end{tabular}
+\end{center}
+
+where each line describes a feature that is equal to 1 if $x_1$, $x_2$
+and $y$ have the values specified on the same line and 0 otherwise (*
+indicates ``don't care'').  The $\vec{w}$ column gives a weight vector
+that maximizes likelihood.  Remember that a vector that maximizes
+likelihood also makes model expectations of all features equal to
+empirical expectations.
+
+\begin{enumerate}[(a)]
+\item Using the conditional log-linear model with the weight vector
+  $\vec{w}$ given above, what is the probability of rain given both
+  buckets are full?
+
+\[ p_\vec{w}(y=1 | x_1=1, x_2=1)= \]
+
+%% 111 3
+%% 110 1
+%% answer: 3/4
+
+\item What is the empirical expectation of the feature $g_{1*1}$
+based on the training set given in Problem 1?
+
+\[\mathbb{E}_{\tilde{p}} [g_{1*1}] = 
+\frac{1}{N} \sum_{i=1}^N g_{1*1}(\vec{x}_i, y_i)=
+\]
+%% 3/8
+\item What is the model expectation of the feature $g_{1*1}$ based on
+  the weight vector $\vec{w}$ given above?  Show your work.
+
+\[\mathbb{E}_{\vec{w}} [g_{1*1}] =
+\frac{1}{N} \sum_{i=1}^N \sum_{y'\in\mathcal{Y}}
+g_{1*1}(\vec{x}_i, y') p_\vec{w}(y'|\vec{x}_i) =
+\]
+\vspace*{4cm}
+%% 4/8 p_w(1|11) = 1/2 exp(ln3)/[exp(ln3)+exp(0)] = 1/2 3/4 
+%% = 3/8
+
+\end{enumerate}
+
+
+\newpage
+\section{Joint log-linear models}
+
+Joint log-linear models also represent $(\vec{x}, y)$ pairs using a
+vector of features $\vec{g}: \mathcal{X} \times \mathcal{Y}
+\rightarrow \mathbb{R}^D$:
+\[ \vec{g}(\vec{x}, y) = \langle g_1(\vec{x}, y), g_2(\vec{x}, y), \dots, g_D(\vec{x}, y) \rangle^T \]
+
+However they model the joint probability $p(\vec{x},y)$, not the
+conditional $p(y|\vec{x})$, based on a linear combination of the
+features determined by a weight vector $\vec{w}$:
+\[ p_\vec{w}(\vec{x},y) = \frac{1}{Z}
+\exp \vec{w}^T \vec{g}(\vec{x}, y)
+\quad\text{ where }
+Z = \sum_{\vec{x}\in\mathcal{X}}
+\sum_{y'\in\mathcal{Y}} 
+\exp \vec{w}^T \vec{g}(\vec{x}, y')
+\]
+
+In this problem we will apply a joint log-linear model to the rain
+bucket question from Problem 1 {\bf using the same training set}.  To
+make a direct comparison we will use the 10 binary features from
+Problem 2 with a different weight vector $\vec{w}$:
+
+\begin{center}
+\begin{tabular}{lllll}
+$\vec{g}$ & $x_1$ & $x_2$ & $y$ & $\vec{w}$ \\ \hline
+g_{**0} & * & * & 0 & 0\\
+g_{**1} & * & * & 1 & 0\\
+g_{0*0} & 0 & * & 0 & $\ln 3$\\
+g_{0*1} & 0 & * & 1 & 0\\
+g_{1*0} & 1 & * & 0 & 0\\
+g_{1*1} & 1 & * & 1 & $\ln 3$\\
+g_{*00} & * & 0 & 0 & $\ln 3$\\
+g_{*01} & * & 0 & 1 & 0\\
+g_{*10} & * & 1 & 0 & 0\\
+g_{*11} & * & 1 & 1 & $\ln 3$\\
+\end{tabular}
+\end{center}
+
+The $\vec{w}$ column gives a weight vector that maximizes the joint
+likelihood.  Similar to the conditional model, this vector makes model
+expectations of all features equal to empirical expectations.
+
+\begin{enumerate}[(a)]
+\item Note that unlike in the conditional model, the normalization
+  constant $Z$ in the joint model does not depend on $\vec{x}$ and
+  requires a sum over all possible $\vec{x},y$ pairs.  What is the $Z$
+  for this problem based on the $\vec{w}$ given above?
+
+\vspace*{2cm}
+%% 000 9
+%% 001 1
+%% 010 3
+%% 011 3
+%% 100 3
+%% 101 3
+%% 110 1
+%% 111 9
+%% total 32
+
+\item Using this joint log-linear model, what is the probability of
+  rain given both buckets are full?  Verify your answer by making sure
+  $p(y=1|x_1,x_2) + p(y=0|x_1,x_2) = 1$.  You can use the following
+  identity: $ p(y|\vec{x}) =
+  p(\vec{x},y)/\sum_{y'\in\mathcal{Y}}p(\vec{x},y')$.  Show your work.
+
+\[ p_\vec{w}(y=1 | x_1=1, x_2=1)= \]
+\vspace*{1cm}
+%% 111 9/32
+%% 110 1/32
+%% answer: 9/10
+
+\item What is the model expectation of the feature $g_{1*1}$ based on
+  the joint log-linear model with the weight vector $\vec{w}$
+  given above?  Show your work.
+
+\[\mathbb{E}_{\vec{w}} [g_{1*1}] =
+\sum_{\vec{x},y} g_{1*1}(\vec{x}, y') p_\vec{w}(\vec{x}, y) =
+\]
+\vspace*{2cm}
+%% 101 3/32
+%% 111 9/32
+%% total 12/32 = 3/8
+
+\item Is there a difference between this model and the Naive Bayes
+  model from Problem 1?
+\end{enumerate}
+
+\end{document}

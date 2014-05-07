@@ -1,7 +1,9 @@
 export ROOT=`pwd`
+export PATH=.:${PATH}
 
-export SRILM=${ROOT}/src/srilm-1.7.0-Lite
-export PATH=${PATH}:${SRILM}/bin/i686-m64:${SRILM}/bin
+export SRILM=${ROOT}/src/srilm-1.7.0
+export SRILM_MACHINE_TYPE=`${SRILM}/sbin/machine-type`
+export PATH=${PATH}:${SRILM}/bin/${SRILM_MACHINE_TYPE}:${SRILM}/bin
 export MANPATH=${MANPATH}:${SRILM}/man
 
 export MALLET_HOME=${ROOT}/src/mallet-2.0.7

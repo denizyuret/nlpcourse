@@ -21,6 +21,62 @@
 	On the geo dataset, try to come up with a probability distribution
 	that maximizes the likelihood of unseen lambda expressions.
 
+2014-04-13  Deniz Yuret  <dyuret@ku.edu.tr>
+
+	* Zettlemoyer-Collins-2005: https://bitbucket.org/yoavartzi: found
+	code and data for geoquery, jobs, navigation etc experiments of
+	zettlemoyer et al.  Is it worth the effort to run / reimplement a
+	string to string learning system?  Need a PCCG parser, need
+	GENLEX, parse typed lambda calculus, implement stochastic gradient
+	descent.  Probably a week to replicate.  What language?
+
+	Work in this area seems to learn various sub-paths of the graph:
+
+	Sentence -> Lexicon -> Grammar -> LogicalForm -> Answer
+
+	In particular ZC05 has sentence-logicalform pairs and infers
+	lexicon and grammar (which is practically the same thing in CCG).
+
+	Two pieces of data in ZC05 are Geo880 and Jobs640.  Geo880 exists
+	in download: geoquery, wasp, spf has different formats.  SPF has
+	the format (typed lambda calculus) used in ZC05 under
+	geoquery/experiments/data.  Jobs640 is in mooney in a different
+	query format.
+
+	Probably need Clark and Curran 2003 for PCCG learning, Steedman
+	1996 and 2000 for more on CCG.  Maybe a fast C implementation of
+	PCCG.  First look at future work to avoid duplicating stupid
+	ideas.  But most importantly this is not the right type of
+	supervision and NLIDB is not an interesting problem...  But think
+	of the challenges for different word types and syntax.  Why are
+	some things in the initial lexicon?  Can they not be learnt?  How
+	many different types of CCG categories are there really?  Do we
+	have the correct CCG parses and gold categories for these
+	sentences?  We'll have to deal with each word type even when
+	dealing with the right supervision...
+
+
+2014-02-20  Deniz Yuret  <dyuret@ku.edu.tr>
+
+	* nlp.pdf: Add Siskind's Abigail system, Deb Roy and Luc Steels
+	systems.
+
+2014-01-19  Deniz Yuret  <dyuret@ku.edu.tr>
+
+	* Questions:
+
+	Can we compute P(A) or P(AB) for words A, B directly looking at
+	the LM?  (AB means A and B appear in the same context, not side by
+	side)
+
+	Why is one algorithm n^3 the other n^5 for dep parsing?
+
+	what kind of pgm are hmm vs crf, pcfg vs crf etc?  directional vs
+	undirectional, why conditional vs joint?  isnt it what is given
+	and what is asked?  same relation as nbayes vs logreg?  why cant
+	we have arbitrary features in joint models, if they are eq to
+	joint maxent?  just interp problem?
+
 2013-08-23  Deniz Yuret  <dyuret@ku.edu.tr>
 
 	* loss: Comparing loss for nbayes, logistic, perceptron, svm, 0-1
