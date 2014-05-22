@@ -389,7 +389,7 @@ p(\vec{w}|\mathcal{H}_G) &=& \prod_{j=1}^d \frac{1}{\sigma \sqrt{2\pi}}
 \vec{w}_\text{MAP} &=& \argmax_\vec{w}\, \log p(D|\vec{w},\mathcal{H}_G)
 + \log p(\vec{w}|\mathcal{H}_G) \\
 &=& \argmax_\vec{w}\, \ell(\vec{w}) -\frac{1}{2\sigma^2}\sum w_j^2 \\
-&=& \argmax_\vec{w}\, \ell(\vec{w}) - \frac{C}{2}\|\vec{w}\|_2^2 \quad\text{where }C=\frac{1}{\sigma^2}
+&=& \argmax_\vec{w}\, \ell(\vec{w}) - \frac{\lambda}{2}\|\vec{w}\|_2^2 \quad\text{where }\lambda=\frac{1}{\sigma^2}
 \end{eqnarray*}
 \end{frame}
 \begin{frame}\frametitle{Conditional log-linear models: Laplacian MAP} %% LSP 94-97
@@ -398,7 +398,7 @@ p(\vec{w}|\mathcal{H}_L) &=& \prod_{j=1}^d \frac{1}{2b} \exp -\frac{|w_j|}{b}\\
 \vec{w}_\text{MAP} &=& \argmax_\vec{w}\, \log p(D|\vec{w},\mathcal{H}_L)
 + \log p(\vec{w}|\mathcal{H}_L) \\
 &=& \argmax_\vec{w}\, \ell(\vec{w}) -\frac{1}{b}\sum |w_j| \\
-&=& \argmax_\vec{w}\, \ell(\vec{w}) - C \|\vec{w}\|_1 \quad\text{where }C=\frac{1}{b}
+&=& \argmax_\vec{w}\, \ell(\vec{w}) - \lambda \|\vec{w}\|_1 \quad\text{where }\lambda=\frac{1}{b}
 \end{eqnarray*}
 \end{frame}
 
@@ -476,10 +476,10 @@ terms of loss functions.
 \begin{frame}\frametitle{MAP prior $\rightarrow$ regularization term}
 \begin{itemize}
 \item Gaussian prior is equivalent to L2 regularization: \[
-  \argmin_\vec{w}\, \frac{1}{N} \sum_{i=1}^N -\log p(y_i|x_i,\vec{w}) + \frac{C}{2}\|\vec{w}\|_2^2
+  \argmin_\vec{w}\, \frac{1}{N} \sum_{i=1}^N -\log p(y_i|x_i,\vec{w}) + \frac{\lambda}{2}\|\vec{w}\|_2^2
 \]
 \item Laplacian prior is equivalent to L1 regularization: \[
-  \argmin_\vec{w}\, \frac{1}{N} \sum_{i=1}^N -\log p(y_i|x_i,\vec{w}) + C \|\vec{w}\|_1
+  \argmin_\vec{w}\, \frac{1}{N} \sum_{i=1}^N -\log p(y_i|x_i,\vec{w}) + \lambda \|\vec{w}\|_1
 \]
 \end{itemize}
 \end{frame}
@@ -816,7 +816,7 @@ allow some points to violate the margin:
 and minimize a linear combination of the weight norm and margin
 violations:
 \[
-\min_{\vec{w},\xi_i\geq 0}\; \frac{C}{2} \|\vec{w}\|^2
+\min_{\vec{w},\xi_i\geq 0}\; \frac{\lambda}{2} \|\vec{w}\|^2
 + \frac{1}{N} \sum_{i=1}^N \xi_i
 \quad\text{s.t. }
 \forall i, \delta(\vec{w},\vec{x}_i) \geq 1 - \xi_i
@@ -851,7 +851,7 @@ and $\xi_i > 1$ if $x_i$ is on the wrong side of the boundary.
 \item The hard margin optimization can be equivalently stated as: \[
 % \vec{w}_* = \argmin_\vec{w}\frac{1}{2}\|\vec{w}\|^2
 %\quad\text{such that } \forall i ,\; \vec{w}^T\vec{x}_i y_i \geq 1
-  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_\infty(\delta_i) + \frac{C}{2} \|\vec{w}\|^2
+  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_\infty(\delta_i) + \frac{\lambda}{2} \|\vec{w}\|^2
 \quad\text{where }
 E_\infty(\delta)=\begin{cases}
 0,& \text{if } \delta \geq 1 \\
@@ -859,7 +859,7 @@ E_\infty(\delta)=\begin{cases}
 \end{cases}
 \]
 \item The soft margin optimization can be stated as: \[
-  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_{SV}(\delta_i) + \frac{C}{2} \|\vec{w}\|^2
+  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_{SV}(\delta_i) + \frac{\lambda}{2} \|\vec{w}\|^2
 \quad\text{where }
 E_{SV}(\delta)=\begin{cases}
 0,& \text{if } \delta \geq 1 \\
@@ -867,7 +867,7 @@ E_{SV}(\delta)=\begin{cases}
 \end{cases}
 \]
 \item Compare this to logistic regression with a Gaussian prior: \[
-  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_{LR}(\delta_i) + \frac{C}{2} \|\vec{w}\|^2
+  \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N E_{LR}(\delta_i) + \frac{\lambda}{2} \|\vec{w}\|^2
 \quad\text{where }
 E_{LR}(\delta) = \log(1 + \exp(-\delta))
 \]
@@ -915,7 +915,7 @@ imply different optimum parameters for a given model.
 \]
 \item Minimizing margin violations: \[
 \min_\vec{w}\; 
- \frac{C}{2} \|\vec{w}\|^2
+ \frac{\lambda}{2} \|\vec{w}\|^2
 + \frac{1}{N} \sum_{i=1}^N 
 -  \vec{w}^T\vec{g}(\vec{x}_i,y_i) + \max_{y\in\mathcal{Y}}
 (  \vec{w}^T\vec{g}(\vec{x}_i,y) + \delta_0(\vec{x}_i,y,y_i))
@@ -931,14 +931,14 @@ imply different optimum parameters for a given model.
 \begin{itemize}
 \item Compare the structural SVM objective: \[
 \min_\vec{w}\; 
- \frac{C}{2} \|\vec{w}\|^2
+ \frac{\lambda}{2} \|\vec{w}\|^2
 + \frac{1}{N} \sum_{i=1}^N 
 -  \vec{w}^T\vec{g}(\vec{x}_i,y_i) + \max_{y\in\mathcal{Y}}
 (  \vec{w}^T\vec{g}(\vec{x}_i,y) + \delta_0(\vec{x}_i,y,y_i))
 \]
 \item to a conditional log-linear model with a Gaussian prior: \[
 \min_\vec{w}\;
- \frac{C}{2} \|\vec{w}\|^2
+ \frac{\lambda}{2} \|\vec{w}\|^2
 + \frac{1}{N} \sum_{i=1}^N 
 -\vec{w}^T \vec{g}(x_i,y_i) 
 +\log \sum_{y\in\mathcal{Y}} \exp \vec{w}^T \vec{g}(x_i,y) 
@@ -1190,103 +1190,103 @@ Fig 4.3).
 
 \end{document}
 
-\section{Extra slides}
-\frame{\sectionpage}
+%% \section{Extra slides}
+%% \frame{\sectionpage}
 
-\begin{frame}
-\begin{itemize}
-\item introduce di for the nominator score difference
-\item introduce cost?
-\item unconstrained version
-\item comparison with log-linear, perceptron
-\item binary version
-\item comparison with binary log-linear, perceptron
-\item comparison with 0-1 loss?  minimizing an upper bound on 0-1
-  loss.  call it margin violation instead of slack.  1 is arbitrary,
-  could be made as small as we want.  margin constant of eps would
-  upper bound a 0-eps loss.  what about minimizing perceptron loss?
-  eps=0 changes the game.  maximizing margin loses meaning once we
-  allow slack.  minimizing (an upper bound on) training set error
-  (with regularization) makes more sense.  gotta move on to
-  unsupervised and language related stuff.
-\end{itemize}
-\end{frame} 
-
-\begin{frame}\frametitle{Perceptron (binary): geometry and margin}
-\begin{itemize}
-\item Consider the rule $ \hat{y} = 1 \text{ if } \vec{w}^T
-  \vec{x} > 0$ and -1 otherwise.
-\item The {\bf decision boundary} is the set of all $\vec{x}$ such
-  that $\vec{w}^T \vec{x} = 0$.
-\item $\vec{w}$ is perpendicular to this boundary: if $\vec{x}_a$ and
-  $\vec{x}_b$ are two points that lie on the boundary, the vector
-  connecting them $\vec{x}_b - \vec{x}_a$ will be perpendicular to
-  $\vec{w}$: $\vec{w}(\vec{x}_b - \vec{x}_a) = \vec{w}\vec{x}_b -
-  \vec{w}\vec{x}_a = 0$.
-\item The distance from an arbitrary training point $\vec{x}_i$ to the
-  boundary is the length of the projection of $\vec{x}_i$ on
-  $\vec{w}$ \[
-  \frac{|\vec{w}^T\vec{x}_i|}{\|\vec{w}\|} = \frac{\vec{w}^T\vec{x}_i y_i}{\|\vec{w}\|}
-\]
-(We can get rid of the absolute value for training points
-  remembering $y_i=1$ for $\vec{w}^T\vec{x}_i>0$ and -1 otherwise.)
-\item The {\bf margin} is the distance of the closest point to the
-  boundary:\[
-  \text{margin } = \min_i \frac{\vec{w}^T\vec{x}_i y_i}{\|\vec{w}\|}
-\]
-% \item The figure on the next slide illustrates the geometry, however
-%   beware that a bias term $w_0$ has been made explicit.
-\end{itemize}
-\end{frame}
-
-\begin{frame}\frametitle{SVM (binary): maximizing (hard) margin} %% LSP 103-104
-\begin{itemize}
-\item We would like to find the $\vec{w}$ that maximizes the margin,
-  i.e. the distance of the closest point to the decision boundary: \[
-  \vec{w}_* = \argmax_\vec{w}\left[ \min_i \frac{\vec{w}^T\vec{x}_i
-      y_i}{\|\vec{w}\| \right]}
-\]
-\item Any multiple of $\vec{w}_*$ will have the same decision boundary
-  and margin.  Let us pick the one that makes $\vec{w}^T\vec{x}_i
-  y_i=1$ for the closest point.  This turns the optimization into: \[
- \vec{w}_* = \argmax_\vec{w} \frac{1}{\|\vec{w}\|}
-%  = \argmin_\vec{w}\frac{1}{2}\|\vec{w}\|^2
-\quad\text{such that } \forall i ,\; \vec{w}^T\vec{x}_i y_i \geq 1
-\]
-or equivalently (for mathematical convenience): \[
- \vec{w}_* = \argmin_\vec{w}\frac{1}{2}\|\vec{w}\|^2
-\quad\text{such that } \forall i ,\; \vec{w}^T\vec{x}_i y_i \geq 1
-\]
-\end{itemize}
-\end{frame}
-
-
-\begin{frame}\frametitle{SVM (binary): maximizing (soft) margin}
-\begin{itemize}
-\item The hard margin constraints $\vec{w}^T\vec{x}_i y_i \geq 1$ are
-  replaced with soft margin constraints $\vec{w}^T\vec{x}_i y_i \geq
-  1-\xi_i$.
-\item We would like to maximize the margin while minimizing the margin
-  violations $\xi_i$:
-\[
-\vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N \xi_i + \frac{\lambda}{2} \|w\|^2
-\]
-\item $\lambda$ is a constant that sets the trade-off between our two
-  objectives and can be determined using cross-validation.
-\end{itemize}
-\end{frame}
-
-%% \begin{frame}\frametitle{Support Vector Machines: multi-class version}
+%% \begin{frame}
 %% \begin{itemize}
-%% \item A multi-class generalization due to (Crammer and Singer,
-%%   2001): \[
-%%  \vec{w}_* = \argmin_\vec{w}\frac{1}{2}\|\vec{w}\|^2
+%% \item introduce di for the nominator score difference
+%% \item introduce cost?
+%% \item unconstrained version
+%% \item comparison with log-linear, perceptron
+%% \item binary version
+%% \item comparison with binary log-linear, perceptron
+%% \item comparison with 0-1 loss?  minimizing an upper bound on 0-1
+%%   loss.  call it margin violation instead of slack.  1 is arbitrary,
+%%   could be made as small as we want.  margin constant of eps would
+%%   upper bound a 0-eps loss.  what about minimizing perceptron loss?
+%%   eps=0 changes the game.  maximizing margin loses meaning once we
+%%   allow slack.  minimizing (an upper bound on) training set error
+%%   (with regularization) makes more sense.  gotta move on to
+%%   unsupervised and language related stuff.
+%% \end{itemize}
+%% \end{frame} 
+
+%% \begin{frame}\frametitle{Perceptron (binary): geometry and margin}
+%% \begin{itemize}
+%% \item Consider the rule $ \hat{y} = 1 \text{ if } \vec{w}^T
+%%   \vec{x} > 0$ and -1 otherwise.
+%% \item The {\bf decision boundary} is the set of all $\vec{x}$ such
+%%   that $\vec{w}^T \vec{x} = 0$.
+%% \item $\vec{w}$ is perpendicular to this boundary: if $\vec{x}_a$ and
+%%   $\vec{x}_b$ are two points that lie on the boundary, the vector
+%%   connecting them $\vec{x}_b - \vec{x}_a$ will be perpendicular to
+%%   $\vec{w}$: $\vec{w}(\vec{x}_b - \vec{x}_a) = \vec{w}\vec{x}_b -
+%%   \vec{w}\vec{x}_a = 0$.
+%% \item The distance from an arbitrary training point $\vec{x}_i$ to the
+%%   boundary is the length of the projection of $\vec{x}_i$ on
+%%   $\vec{w}$ \[
+%%   \frac{|\vec{w}^T\vec{x}_i|}{\|\vec{w}\|} = \frac{\vec{w}^T\vec{x}_i y_i}{\|\vec{w}\|}
 %% \]
-%% \[
-%% \text{such that } \forall i\;, \forall \hat{y}_i\in\bar{\mathcal{Y}_i},\; 
-%% \vec{w}^T\vec{g}(\vec{x}_i, y_i) - \vec{w}^T\vec{g}(\vec{x}_i, \hat{y}_i)
-%% \geq \delta
+%% (We can get rid of the absolute value for training points
+%%   remembering $y_i=1$ for $\vec{w}^T\vec{x}_i>0$ and -1 otherwise.)
+%% \item The {\bf margin} is the distance of the closest point to the
+%%   boundary:\[
+%%   \text{margin } = \min_i \frac{\vec{w}^T\vec{x}_i y_i}{\|\vec{w}\|}
+%% \]
+%% % \item The figure on the next slide illustrates the geometry, however
+%% %   beware that a bias term $w_0$ has been made explicit.
+%% \end{itemize}
+%% \end{frame}
+
+%% \begin{frame}\frametitle{SVM (binary): maximizing (hard) margin} %% LSP 103-104
+%% \begin{itemize}
+%% \item We would like to find the $\vec{w}$ that maximizes the margin,
+%%   i.e. the distance of the closest point to the decision boundary: \[
+%%   \vec{w}_* = \argmax_\vec{w}\left[ \min_i \frac{\vec{w}^T\vec{x}_i
+%%       y_i}{\|\vec{w}\| \right]}
+%% \]
+%% \item Any multiple of $\vec{w}_*$ will have the same decision boundary
+%%   and margin.  Let us pick the one that makes $\vec{w}^T\vec{x}_i
+%%   y_i=1$ for the closest point.  This turns the optimization into: \[
+%%  \vec{w}_* = \argmax_\vec{w} \frac{1}{\|\vec{w}\|}
+%% %  = \argmin_\vec{w}\frac{1}{2}\|\vec{w}\|^2
+%% \quad\text{such that } \forall i ,\; \vec{w}^T\vec{x}_i y_i \geq 1
+%% \]
+%% or equivalently (for mathematical convenience): \[
+%%  \vec{w}_* = \argmin_\vec{w}\frac{1}{2}\|\vec{w}\|^2
+%% \quad\text{such that } \forall i ,\; \vec{w}^T\vec{x}_i y_i \geq 1
 %% \]
 %% \end{itemize}
 %% \end{frame}
+
+
+%% \begin{frame}\frametitle{SVM (binary): maximizing (soft) margin}
+%% \begin{itemize}
+%% \item The hard margin constraints $\vec{w}^T\vec{x}_i y_i \geq 1$ are
+%%   replaced with soft margin constraints $\vec{w}^T\vec{x}_i y_i \geq
+%%   1-\xi_i$.
+%% \item We would like to maximize the margin while minimizing the margin
+%%   violations $\xi_i$:
+%% \[
+%% \vec{w}_* = \argmin_\vec{w} \sum_{i=1}^N \xi_i + \frac{\lambda}{2} \|w\|^2
+%% \]
+%% \item $\lambda$ is a constant that sets the trade-off between our two
+%%   objectives and can be determined using cross-validation.
+%% \end{itemize}
+%% \end{frame}
+
+%% %% \begin{frame}\frametitle{Support Vector Machines: multi-class version}
+%% %% \begin{itemize}
+%% %% \item A multi-class generalization due to (Crammer and Singer,
+%% %%   2001): \[
+%% %%  \vec{w}_* = \argmin_\vec{w}\frac{1}{2}\|\vec{w}\|^2
+%% %% \]
+%% %% \[
+%% %% \text{such that } \forall i\;, \forall \hat{y}_i\in\bar{\mathcal{Y}_i},\; 
+%% %% \vec{w}^T\vec{g}(\vec{x}_i, y_i) - \vec{w}^T\vec{g}(\vec{x}_i, \hat{y}_i)
+%% %% \geq \delta
+%% %% \]
+%% %% \end{itemize}
+%% %% \end{frame}
 
